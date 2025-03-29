@@ -1,5 +1,5 @@
 import sys
-
+import logic
 
 def new_logic():
     """
@@ -25,8 +25,11 @@ def load_data(control):
     """
     Carga los datos
     """
-    #TODO: Realizar la carga de datos
-    pass
+    filename = input("Ingrese el nombre del archivo CSV: ")
+    report = logic.load_data(control, filename)
+    print("Resultados de la carga de datos:")
+    print(report)
+    return report
 
 
 def print_data(control, id):
@@ -34,13 +37,29 @@ def print_data(control, id):
         Función que imprime un dato dado su ID
     """
     #TODO: Realizar la función para imprimir un elemento
-    pass
+    id = input("ingrese el ID del dato a consultar: ")
+    result = logic.get_data(control,id)
+    if result:
+        print("dato encontrado: ")
+        print(result)
+    else:
+        print("El ID no se encuentra en los datos.")
+    return result
 
 def print_req_1(control):
     """
         Función que imprime la solución del Requerimiento 1 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 1
+    year = input("Ingrese el año de interés (YYYY): ")
+    report = logic.req_1(control, year)
+    if report:
+        print("Tiempo de ejecución:", report["execution_time"], "ms")
+        print("Total de registros encontrados:", report["total_records"])
+        print("Último registro encontrado:")
+        for key, value in report["last_record"].items():
+            print(f"{key}: {value}")
+
     pass
 
 
@@ -65,6 +84,24 @@ def print_req_4(control):
         Función que imprime la solución del Requerimiento 4 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 4
+    producto = input("Enter the product type: ")
+    anio_inicial = int(input("Enter the start year of the period: "))
+    anio_final = int(input("Enter the end year of the period: "))
+    
+    report = logic.req_4(control, producto, anio_inicial, anio_final)
+    
+    if report:
+        print("Execution time:", report["execution_time"], "ms")
+        print("Total records found:", report["total_records"])
+        print("Records with SURVEY source:", report["total_survey"])
+        print("Records with CENSUS source:", report["total_census"])
+        print("List of records:")
+        for record in report["records"]:
+            for key, value in record.items():
+                print(f"{key}: {value}")
+            print("-")
+    else:
+        print("No records found for the given criteria.")
     pass
 
 
