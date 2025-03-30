@@ -6,8 +6,6 @@ from DataStructures.Map.map_functions import next_prime
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.List import array_list as al
 from DataStructures.Map import map_separate_chaining as scv
-from DataStructures.Map import Map as map
-from DataStructures.List import ArrayList as ar
 
 def new_logic():
     """
@@ -15,10 +13,10 @@ def new_logic():
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos}
     catalogo = {
-        "fuentes":map(),
-        "productos":map(),
-        "estados":map(),
-        "datos":ar()
+        "fuentes":lp(),
+        "productos":lp(),
+        "estados":lp(),
+        "datos":al()
     }
     return catalogo
 
@@ -215,7 +213,7 @@ def req_4(catalog, producto, anio_inicial, anio_final):
     if not filtro:
         return None
     
-    map.shell_sort(filtro)
+    lp.shell_sort(filtro)
     total_registros = len(filtro)
     total_survey = sum(1 for record in filtro if record["source_type"] == "SURVEY")
     total_census = sum(1 for record in filtro if record["source_type"] == "CENSUS")
