@@ -1,6 +1,6 @@
 import time
-from datastructures.map import Map as map
-from datastructures.array_list import ArrayList as ar
+from DataStructures.Map import Map as map
+from DataStructures.List import ArrayList as ar
 
 def new_logic():
     """
