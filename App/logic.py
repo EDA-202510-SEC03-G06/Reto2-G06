@@ -253,20 +253,45 @@ def req_5(catalog):
     # TODO: Modificar el requerimiento 5
     pass
 
-def req_6(catalog):
+def req_6(catalog, departamento, anio_inicial, anio_final):
     """
     Retorna el resultado del requerimiento 6
     """
     # TODO: Modificar el requerimiento 6
-    pass
-
-
-def req_7(catalog):
+    start_time = get_time()
+    filtro = []
+    registros = catalog["datos"]
+    for registro in registros:
+        anio_coleccion = int(registro["year_collection"]) 
+        if registro["department"] == departamento and anio_inicial <= anio_coleccion <= anio_final:
+            filtro.append(registro)
+    map.shell_sort(filtro)
+    total_registros = len(filtro)
+    total_survey = sum(1 for registro in filtro if registro["source_type"] == "SURVEY")
+    total_census = sum(1 for registro in filtro if registro["source_type"] == "CENSUS")
+    if total_registros > 20:
+        datos_filtrados = filtro[:5] + filtro[-5:] 
+    else:
+        datos_filtrados = filtro
+    end_time = get_time()
+    execution_time = delta_time(start_time,end_time)
+    report = {
+        "execution_time": execution_time,
+        "total_records": total_registros,
+        "survey_count": total_survey,
+        "census_count": total_census,
+        "filtered_data": datos_filtrados
+    }
+    return report
+    
+        
+    
+def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
     """
     Retorna el resultado del requerimiento 7
     """
     # TODO: Modificar el requerimiento 7
-    pass
+    
 
 
 def req_8(catalog):

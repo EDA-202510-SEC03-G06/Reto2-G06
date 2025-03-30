@@ -151,9 +151,26 @@ def print_req_6(control):
         Función que imprime la solución del Requerimiento 6 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 6
-    pass
+    departamento = input("Ingrese el nombre del departamento: ")
+    anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
+    anio_final = int(input("Ingrese el año final (YYYY): "))
 
+    report = logic.req_6(control, departamento, anio_inicial, anio_final)
 
+    if report:
+        print("Tiempo de la ejecución:", report["execution_time"], "ms")
+        print("Total registros encontrados:", report["total_records"])
+        print("Total registros con fuente SURVEY:", report["survey_count"])
+        print("Total registros con fuente CENSUS:", report["census_count"])
+
+        for record in report["records"]:
+            for key, value in record.items():
+                print(f"{key}: {value}")
+            print("-")
+    else:
+        print("No se encontraron registros para los criterios ingresados.")    
+    
+    
 def print_req_7(control):
     """
         Función que imprime la solución del Requerimiento 7 en consola
