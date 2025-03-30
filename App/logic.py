@@ -244,12 +244,47 @@ def req_4(catalog, producto, anio_inicial, anio_final):
     pass
 
 
-def req_5(catalog):
+def req_5(catalog,categoria, anio_inicial, anio_final):
     """
     Retorna el resultado del requerimiento 5
     """
     # TODO: Modificar el requerimiento 5
-    pass
+    start_time = get_time()
+    registro = catalog["datos"]
+    filtro = [record for record in registro if record["statistical_category"] == categoria and anio_inicial <= record["collection_year"] <= anio_final]
+    if not filtro:
+        return None
+    lp.shell_sort(filtro)
+    total_registros = len(filtro)
+    total_survey = sum(1 for record in filtro if record["source_type"] == "SURVEY")
+    total_census = sum(1 for record in filtro if record["source_type"] == "CENSUS")
+    
+    if total_registros > 20:
+        filtro = filtro[:5] + filtro[-5:]
+        
+    end_time = get_time()
+    c_tiempo= delta_time(start_time,end_time)
+    
+    report = {
+        "execution_time": c_tiempo,
+        "total_records": total_registros,
+        "total_survey": total_survey,
+        "total_census": total_census,
+        "records": [
+            {
+                "source_type": record["source_type"],
+                "collection_year": record["collection_year"],
+                "load_date": record["load_date"],
+                "frequency": record["frequency"],
+                "department": record["department"],
+                "unit": record["unit"],
+                "product_type": record["product_type"]
+            }
+            for record in filtro
+        ]
+    }
+    
+    return report
 
 def req_6(catalog):
     """

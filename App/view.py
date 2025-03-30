@@ -117,9 +117,9 @@ def print_req_4(control):
         Función que imprime la solución del Requerimiento 4 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 4
-    producto = input("Enter the product type: ")
-    anio_inicial = int(input("Enter the start year of the period: "))
-    anio_final = int(input("Enter the end year of the period: "))
+    producto = input("ingrese el tipo de producto: ")
+    anio_inicial = int(input("ingrese el año iniciald: "))
+    anio_final = int(input("ingrese el año final: "))
     
     report = logic.req_4(control, producto, anio_inicial, anio_final)
     
@@ -134,7 +134,7 @@ def print_req_4(control):
                 print(f"{key}: {value}")
             print("-")
     else:
-        print("No records found for the given criteria.")
+        print("No hay recursos encontrados segun los criterios dados.")
     pass
 
 
@@ -143,6 +143,24 @@ def print_req_5(control):
         Función que imprime la solución del Requerimiento 5 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 5
+    categoria = input("ingrese el tipo de producto: ")
+    anio_inicial = int(input("ingrese el año iniciald: "))
+    anio_final = int(input("ingrese el año final: "))
+    
+    report = logic.req_5(control, categoria, anio_inicial, anio_final)
+    
+    if report:
+        print("Execution time:", report["execution_time"], "ms")
+        print("Total records found:", report["total_records"])
+        print("Records with SURVEY source:", report["total_survey"])
+        print("Records with CENSUS source:", report["total_census"])
+        print("List of records:")
+        for record in report["records"]:
+            for key, value in record.items():
+                print(f"{key}: {value}")
+            print("-")
+    else:
+        print("No hay recursos encontrados segun los criterios dados.")
     pass
 
 
