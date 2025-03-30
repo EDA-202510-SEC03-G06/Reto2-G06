@@ -1,4 +1,6 @@
 import sys
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
 from App import logic
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.List import array_list as al

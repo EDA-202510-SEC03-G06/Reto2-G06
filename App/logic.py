@@ -1,3 +1,5 @@
+import csv
+csv.field_size_limit(2147483647)
 import time
 import tracemalloc
 from DataStructures.Map.map_functions import next_prime
