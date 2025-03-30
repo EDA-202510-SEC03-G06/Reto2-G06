@@ -1,4 +1,11 @@
 import time
+import tracemalloc
+from DataStructures.Map.map_functions import next_prime
+
+
+from DataStructures.Map import map_linear_probing as lp
+from DataStructures.List import array_list as al
+from DataStructures.Map import map_separate_chaining as scv
 from DataStructures.Map import Map as map
 from DataStructures.List import ArrayList as ar
 
@@ -120,20 +127,81 @@ def req_1(catalog, anio):
     return report
 
 
-def req_2(catalog):
+def req_2(catalog, departamento, N):
     """
     Retorna el resultado del requerimiento 2
     """
     # TODO: Modificar el requerimiento 2
-    pass
+    start_time = get_time()
+    
+    registros_filtrados = []
+    for registro in catalog["datos"]:
+        if registro["department"] == departamento:
+            registros_filtrados.append(registro)
+    
+    for i in range(len(registros_filtrados)):
+        for j in range(i + 1, len(registros_filtrados)):
+            if registros_filtrados[i]["load_date"] < registros_filtrados[j]["load_date"]:
+                registros_filtrados[i], registros_filtrados[j] = registros_filtrados[j], registros_filtrados[i]
+    
+    registros_seleccionados = registros_filtrados[:N]
+    
+    end_time = get_time()
+    execution_time = delta_time(start_time, end_time)
+    
+    report = {
+        "execution_time": execution_time,
+        "total_records": len(registros_filtrados),
+        "records": [
+            {
+                "year_collection": reg["year_collection"],
+                "load_date": reg["load_date"],
+                "source_type": reg["source_type"],
+                "frequency": reg["frequency"],
+                "department": reg["department"],
+                "product_type": reg["product_type"],
+                "unit": reg["unit"],
+                "value": reg["value"]
+            }
+            for reg in registros_seleccionados
+        ]
+    }
+    return report
 
 
-def req_3(catalog):
+def req_3(catalog, departamento, anio_inicial, anio_final):
     """
     Retorna el resultado del requerimiento 3
     """
     # TODO: Modificar el requerimiento 3
-    pass
+    start_time = get_time()
+    registros_filtrados = []
+    for registro in catalog["datos"]:
+        if registro["department"] == departamento and anio_inicial <= int(registro["year_collection"]) <= anio_final:
+            registros_filtrados.append(registro)
+    
+    for i in range(len(registros_filtrados)):
+        for j in range(i + 1, len(registros_filtrados)):
+            if (registros_filtrados[i]["load_date"], registros_filtrados[i]["department"]) < (registros_filtrados[j]["load_date"], registros_filtrados[j]["department"]):
+                registros_filtrados[i], registros_filtrados[j] = registros_filtrados[j], registros_filtrados[i]
+    
+    total_survey = sum(1 for reg in registros_filtrados if reg["source_type"] == "SURVEY")
+    total_census = sum(1 for reg in registros_filtrados if reg["source_type"] == "CENSUS")
+    
+    if len(registros_filtrados) > 20:
+        registros_filtrados = registros_filtrados[:5] + registros_filtrados[-5:]
+    
+    end_time = get_time()
+    execution_time = delta_time(start_time, end_time)
+    
+    report = {
+        "execution_time": execution_time,
+        "total_records": len(registros_filtrados),
+        "total_survey": total_survey,
+        "total_census": total_census,
+        "records": registros_filtrados
+    }
+    return report
 
 
 def req_4(catalog, producto, anio_inicial, anio_final):
@@ -206,7 +274,35 @@ def req_8(catalog):
     Retorna el resultado del requerimiento 8
     """
     # TODO: Modificar el requerimiento 8
-    pass
+    start_time = get_time()
+    departamento_tiempos = {}
+    
+    for registro in catalog["datos"]:
+        if registro["unit"] == "D":
+            continue
+        departamento = registro["department"]
+        tiempo_diferencia = int(registro["load_date"][:4]) - int(registro["year_collection"])
+        if departamento not in departamento_tiempos:
+            departamento_tiempos[departamento] = []
+        departamento_tiempos[departamento].append(tiempo_diferencia)
+    
+    estadisticas = []
+    for departamento, tiempos in departamento_tiempos.items():
+        promedio = sum(tiempos) / len(tiempos)
+        estadisticas.append((departamento, promedio, len(tiempos), min(tiempos), max(tiempos)))
+    
+    ordenar_lista(estadisticas, order)
+    seleccionados = estadisticas[:N]
+    
+    end_time = get_time()
+    execution_time = delta_time(start_time, end_time)
+    
+    report = {
+        "execution_time": execution_time,
+        "total_departments": len(seleccionados),
+        "departments": seleccionados
+    }
+    return report
 
 
 # Funciones para medir tiempos de ejecucion

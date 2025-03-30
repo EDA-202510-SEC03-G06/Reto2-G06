@@ -1,5 +1,7 @@
 import sys
-import logic
+from App import logic
+from DataStructures.Map import map_linear_probing as lp
+from DataStructures.List import array_list as al
 
 def new_logic():
     """
@@ -68,15 +70,46 @@ def print_req_2(control):
         Función que imprime la solución del Requerimiento 2 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 2
-    pass
-
+    
+    departamento = input("Ingrese el nombre del departamento: ")
+    N = int(input("Ingrese la cantidad de registros a mostrar: "))
+    report = req_2(control, departamento, N)
+    
+    if report:
+        print("Tiempo de ejecución:", report["execution_time"], "ms")
+        print("Total de registros encontrados:", report["total_records"])
+        print("Registros:")
+        for record in report["records"]:
+            for key, value in record.items():
+                print(f"{key}: {value}")
+            print("-")
+    else:
+        print("No se encontraron registros para el departamento especificado.")
 
 def print_req_3(control):
     """
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    departamento = input("Ingrese el nombre del departamento: ").strip().upper()
+    anio_inicial = int(input("Ingrese el año inicial (YYYY): ").strip())
+    anio_final = int(input("Ingrese el año final (YYYY): ").strip())
+
+    report = logic.req_3(control, departamento, anio_inicial, anio_final)
+
+    if report:
+        print("\nTiempo de ejecución:", report["execution_time"], "ms")
+        print("Total de registros encontrados:", report["total_records"])
+        print("Registros con fuente SURVEY:", report["total_survey"])
+        print("Registros con fuente CENSUS:", report["total_census"])
+
+        if report["total_records"] == 0:
+            print("\nNo se encontraron registros para los criterios ingresados.")
+        else:
+            print("\nRegistros encontrados:")
+            for reg in report["records"]:
+                print(f"{reg['source_type']} | {reg['year_collection']} | {reg['load_date']} | {reg['frequency']} | {reg['product_type']} | {reg['unit']}")
+
 
 
 def print_req_4(control):
@@ -134,7 +167,21 @@ def print_req_8(control):
         Función que imprime la solución del Requerimiento 8 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 8
-    pass
+    N = int(input("Ingrese el número de departamentos a listar: "))
+    order = input("Ingrese el tipo de ordenamiento (ASCENDENTE/DESCENDENTE): ").strip().upper()
+    report = req_8(control, N, order)
+    
+    if report:
+        print("Tiempo de ejecución:", report["execution_time"], "ms")
+        print("Total de departamentos analizados:", report["total_departments"])
+        for departamento in report["departments"]:
+            print(f"Departamento: {departamento[0]}")
+            print(f"Tiempo promedio entre recopilación y carga: {departamento[1]}")
+            print(f"Número de registros: {departamento[2]}")
+            print(f"Menor año de recopilación: {departamento[3]}")
+            print(f"Mayor año de recopilación: {departamento[4]}")
+            print(f"Menor tiempo entre recopilación y carga: {departamento[5]}")
+            print(f"Mayor tiempo entre recopilación y carga: {departamento[6]}")
 
 
 # Se crea la lógica asociado a la vista
