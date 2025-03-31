@@ -14,13 +14,13 @@ def new_logic():
     Crea el catalogo para almacenar las estructuras de datos
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos}
-    catalogo = {
+    catalog = {
         "fuentes":lp(),
         "productos":lp(),
         "estados":lp(),
         "datos":al()
     }
-    return catalogo
+    return catalog
 
 
 # Funciones para la carga de datos
@@ -36,6 +36,7 @@ def load_data(catalog, filename):
     f.close()
     
     headers = lines[0].strip().split(",")
+    catalog["datos"] = []
     if len(lines)>1:
         first_year = int(lines[1].strip().split(",")[headers.index("year_collection")])
         min_year = first_year
@@ -51,6 +52,7 @@ def load_data(catalog, filename):
     for linea in lines[1:]:
         valores = linea.strip().split(",")
         record = {headers[i]: valores[i] for i in range(len(headers))}
+        catalog["datos"].append(record)
         year = int(record["year_collection"])
         if year < min_year:
             min_year = year
