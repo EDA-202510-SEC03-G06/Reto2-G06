@@ -3,10 +3,8 @@ csv.field_size_limit(2147483647)
 import time
 import tracemalloc
 from DataStructures.Map.map_functions import next_prime
-
-
 from DataStructures.Map import map_linear_probing as lp
-from DataStructures.List import array_list as al
+from DataStructures.List import single_linked_list as sl
 from DataStructures.Map import map_separate_chaining as scv
 
 def new_logic():
@@ -18,7 +16,7 @@ def new_logic():
         "fuentes":lp(),
         "productos":lp(),
         "estados":lp(),
-        "datos":al()
+        "datos":sl()
     }
     return catalog
 
@@ -36,7 +34,7 @@ def load_data(catalog, filename):
     f.close()
     
     headers = lines[0].strip().split(",")
-    catalog["datos"] = []
+    catalog["datos"] = sl()
     if len(lines)>1:
         first_year = int(lines[1].strip().split(",")[headers.index("year_collection")])
         min_year = first_year
@@ -45,14 +43,14 @@ def load_data(catalog, filename):
         min_year = None
         max_year = None
         
-    first_five = []  
-    last_five = [] 
+    first_five = sl()  
+    last_five = sl() 
     total_records = 0
         
     for linea in lines[1:]:
         valores = linea.strip().split(",")
         record = {headers[i]: valores[i] for i in range(len(headers))}
-        catalog["datos"].append(record)
+        sl_add_last(catalog["datos"],record)
         year = int(record["year_collection"])
         if year < min_year:
             min_year = year
@@ -60,11 +58,11 @@ def load_data(catalog, filename):
             max_year = year
             
         if total_records < 5:
-            first_five.append(record)
+            sl_add_last(first_five,record)
         else:
-            last_five.append(record)
-            if len(last_five) > 5:
-                last_five.pop(0)
+            sl_add_last(last_five,record)
+            if sl_size(last_five) > 5:
+                sl_remove_first(last_five)
         total_records += 1
 
     end_time = get_time()
