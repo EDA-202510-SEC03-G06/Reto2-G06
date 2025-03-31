@@ -1,10 +1,11 @@
 import csv
 csv.field_size_limit(2147483647)
 import time
+import os
 import tracemalloc
 from DataStructures.Map.map_functions import next_prime
 from DataStructures.Map import map_linear_probing as lp
-from DataStructures.List import single_linked_list as sl
+from DataStructures.List import array_list as al
 from DataStructures.Map import map_separate_chaining as scv
 
 def new_logic():
@@ -13,10 +14,10 @@ def new_logic():
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos}
     catalog = {
-        "fuentes":lp(),
-        "productos":lp(),
-        "estados":lp(),
-        "datos":sl()
+        "fuentes":lp.new_map(),
+        "productos":lp.new_map(),
+        "estados":lp.new_map(),
+        "datos":al.new_list()
     }
     return catalog
 
@@ -27,56 +28,66 @@ def load_data(catalog, filename):
     """
     Carga los datos del reto
     """
-    # TODO: Realizar la carga de datos
+    # Verificar si el archivo existe antes de abrirlo
+    if not os.path.exists(filename):
+        return {"error": f"El archivo '{filename}' no se encuentra."}
+    
     start_time = get_time()
+    
+    # Abrir el archivo sin manejo de excepciones
     f = open(filename, encoding='utf-8')
     lines = f.readlines()
     f.close()
     
     headers = lines[0].strip().split(",")
-    catalog["datos"] = sl()
-    if len(lines)>1:
+    catalog["datos"] = []
+    
+    # Inicialización de los valores de año mínimo y máximo
+    if len(lines) > 1:
         first_year = int(lines[1].strip().split(",")[headers.index("year_collection")])
-        min_year = first_year
-        max_year = first_year
+        min_year = max_year = first_year
     else:
-        min_year = None
-        max_year = None
+        min_year = max_year = None
         
-    first_five = sl()  
-    last_five = sl() 
+    first_five = []  
+    last_five = [] 
     total_records = 0
         
-    for linea in lines[1:]:
+    for i, linea in enumerate(lines[1:]):
         valores = linea.strip().split(",")
-        record = {headers[i]: valores[i] for i in range(len(headers))}
-        sl_add_last(catalog["datos"],record)
+        record = {headers[j]: valores[j] for j in range(len(headers))}
+        catalog["datos"].append(record)
+        
         year = int(record["year_collection"])
-        if year < min_year:
+        if min_year is None or year < min_year:
             min_year = year
-        if year > max_year:
+        if max_year is None or year > max_year:
             max_year = year
             
+        # Almacenar los primeros 5 registros
         if total_records < 5:
-            sl_add_last(first_five,record)
-        else:
-            sl_add_last(last_five,record)
-            if sl_size(last_five) > 5:
-                sl_remove_first(last_five)
+            first_five.append(record)
+        
+        # Almacenar los últimos 5 registros
+        last_five.append(record)
+        if len(last_five) > 5:
+            last_five.pop(0)
+        
         total_records += 1
 
     end_time = get_time()
-    c_tiempo = delta_time(start_time,end_time) 
+    c_tiempo = delta_time(start_time, end_time)
+    
     report = {
-        "execution_time": c_tiempo, 
-        "total_records": total_records,  
-        "min_year": min_year,  
-        "max_year": max_year,  
-        "first_five": first_five,  
-        "last_five": last_five  
+        "execution_time": c_tiempo,
+        "total_records": total_records,
+        "min_year": min_year,
+        "max_year": max_year,
+        "first_five": first_five,
+        "last_five": last_five
     }
+    
     return report
-
 
 # Funciones de consulta sobre el catálogo
 
