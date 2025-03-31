@@ -29,8 +29,7 @@ def load_data(control):
     """
     Carga los datos
     """
-    filename = input("Ingrese el nombre del archivo CSV: ").strip()
-    report = logic.load_data(control, filename)
+    report = logic.load_data(control)
     print("Resultados de la carga de datos:")
     print(report)
     return report

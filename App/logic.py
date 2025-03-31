@@ -3,6 +3,7 @@ csv.field_size_limit(2147483647)
 import time
 import os
 import tracemalloc
+import datetime
 from DataStructures.Map.map_functions import next_prime
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.List import array_list as al
@@ -10,84 +11,49 @@ from DataStructures.Map import map_separate_chaining as scv
 
 def new_logic():
     """
-    Crea el catalogo para almacenar las estructuras de datos
+    Crea el catálogo vacío con las estructuras necesarias.
     """
-    #TODO: Llama a las funciónes de creación de las estructuras de datos}
-    catalog = {
-        "fuentes":lp.new_map(),
-        "productos":lp.new_map(),
-        "estados":lp.new_map(),
-        "datos":al.new_list()
+    catalogo = {
+        "list_all_data": al.new_list(),
+        "map_by_departments": lp.new_map(num_elements=60, load_factor=0.5),
+        "map_by_commodity": lp.new_map(num_elements=80, load_factor=0.5)
     }
-    return catalog
-
+    return catalogo
 
 # Funciones para la carga de datos
 
-def load_data(catalog, filename):
-    """
-    Carga los datos del reto
-    """
-    # Verificar si el archivo existe antes de abrirlo
-    if not os.path.exists(filename):
-        return {"error": f"El archivo '{filename}' no se encuentra."}
-    
-    start_time = get_time()
-    
-    # Abrir el archivo sin manejo de excepciones
-    f = open(filename, encoding='utf-8')
-    lines = f.readlines()
-    f.close()
-    
-    headers = lines[0].strip().split(",")
-    catalog["datos"] = []
-    
-    # Inicialización de los valores de año mínimo y máximo
-    if len(lines) > 1:
-        first_year = int(lines[1].strip().split(",")[headers.index("year_collection")])
-        min_year = max_year = first_year
-    else:
-        min_year = max_year = None
-        
-    first_five = []  
-    last_five = [] 
-    total_records = 0
-        
-    for i, linea in enumerate(lines[1:]):
-        valores = linea.strip().split(",")
-        record = {headers[j]: valores[j] for j in range(len(headers))}
-        catalog["datos"].append(record)
-        
-        year = int(record["year_collection"])
-        if min_year is None or year < min_year:
-            min_year = year
-        if max_year is None or year > max_year:
-            max_year = year
-            
-        # Almacenar los primeros 5 registros
-        if total_records < 5:
-            first_five.append(record)
-        
-        # Almacenar los últimos 5 registros
-        last_five.append(record)
-        if len(last_five) > 5:
-            last_five.pop(0)
-        
-        total_records += 1
+def load_data(catalogo, filename='-20.csv', data_dir='data/'):
 
-    end_time = get_time()
-    c_tiempo = delta_time(start_time, end_time)
-    
-    report = {
-        "execution_time": c_tiempo,
-        "total_records": total_records,
-        "min_year": min_year,
-        "max_year": max_year,
-        "first_five": first_five,
-        "last_five": last_five
-    }
-    
-    return report
+    """
+    Carga los datos del archivo CSV, reformatea y los agrega al catálogo.
+    """
+    ruta = data_dir + 'agricultural' + filename
+    lector = csv.DictReader(open(ruta, encoding='utf-8'))
+
+    for fila in lector:
+
+        fila['year_collection'] = int(fila['year_collection'])
+        fila['value'] = float(fila['value'].replace(',', '')) if fila['value'] != '' else -1
+        fila['load_time'] = datetime.datetime.strptime(fila['load_time'], '%Y-%m-%d %H:%M:%S')
+        fila['location'] = fila['location'].replace(', ', ',').split(',')
+
+        al.add_last(catalogo['list_all_data'], fila)
+
+        depto = fila['state_name']
+        lista_depto = lp.get(catalogo['map_by_departments'], depto)
+        if lista_depto is None:
+            lista_depto = al.new_list()
+            lp.put(catalogo['map_by_departments'], depto, lista_depto)
+        al.add_last(lista_depto, fila)
+
+        producto = fila['commodity']
+        lista_prod = lp.get(catalogo['map_by_commodity'], producto)
+        if lista_prod is None:
+            lista_prod = al.new_list()
+            lp.put(catalogo['map_by_commodity'], producto, lista_prod)
+        al.add_last(lista_prod, fila)
+
+    return catalogo
 
 # Funciones de consulta sobre el catálogo
 
