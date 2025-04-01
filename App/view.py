@@ -140,20 +140,27 @@ def print_req_3(control):
     if report:
         print(f"\nTiempo de ejecución: {report['execution_time']} ms")
         print(f"Total de registros encontrados: {report['total_records']}")
+       
+        count_survey = sum(1 for record in report['last_N_records'] if record['source_type'] == 'SURVEY')
+        count_census = sum(1 for record in report['last_N_records'] if record['source_type'] == 'CENSUS')
         
+        print(f"Registros con fuente 'SURVEY': {count_survey}")
+        print(f"Registros con fuente 'CENSUS': {count_census}")
+
         print("\nRegistros:")
         for record in report["last_N_records"]:
-            print(f"Tipo de fuente/origen: {record['source_type']}")
-            print(f"\nAño de recopilación: {record['year_collection']}")
+            print(f"\nTipo de fuente/origen: {record['source_type']}")
+            print(f"Año de recopilación: {record['year_collection']}")
             print(f"Fecha de carga: {record['load_time']}")
             print(f"Frecuencia de recopilación: {record['frequency']}")
             print(f"Nombre del departamento: {record['state_name']}")
             print(f"Tipo del producto: {record['commodity']}")
             print(f"Unidad de medición: {record['unit']}")
             print(f"Valor de la medición: {record['value']}")
+            print("-" * 50)  
     else:
-        print("No se encontraron registros para los parámetros especificados.")
-
+        print("\nNo se encontraron registros para los parámetros especificados.")
+        
 def print_req_4(control):
     """
     Función que imprime la solución del Requerimiento 4 en consola

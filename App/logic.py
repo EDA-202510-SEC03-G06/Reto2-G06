@@ -208,44 +208,64 @@ def req_3(catalog, departamento, anio_inicial, anio_final):
     """
     # TODO: Modificar el requerimiento 3
     start_time = get_time()
-   
-    filtro = [registro for registro in catalog["list_all_data"]["elements"]
-              if isinstance(registro, dict) and
-              registro.get("state_name") == departamento and
-              anio_inicial <= int(registro.get("year_collection", 0)) <= anio_final]
+
+    filtro = []
+    elementos = catalog["list_all_data"]["elements"]
     
-    if not filtro:
+    for i in range(len(elementos)):
+        registro = elementos[i]
+
+        if "state_name" in registro and registro["state_name"] == departamento:
+            if "year_collection" in registro:
+                try:
+                    anio_recolectado = int(registro["year_collection"])
+                    if anio_inicial <= anio_recolectado <= anio_final:
+                        filtro.append(registro)
+                except:
+                    pass 
+
+    if len(filtro) == 0:
         return None
-    
-    registros_ordenados = sorted(filtro, key=lambda x: (x.get("load_time"), x.get("state_name")), reverse=True)
-    
-    
-    if len(registros_ordenados) > 20:
-        registros_ordenados = registros_ordenados[:5] + registros_ordenados[-5:]
-    
+
+    filtro = sorted(filtro, key=lambda x: x.get('year_collection', 0))
+
+    if len(filtro) > 20:
+        registros_ordenados = filtro[:5] + filtro[-5:]
+    else:
+        registros_ordenados = filtro
+
     def formatear_registros(registros):
-        return [{
-            "year_collection": r.get("year_collection"),
-            "load_time": r.get("load_time"),
-            "state_name": r.get("state_name"),
-            "source_type": r.get("source"),
-            "unit": r.get("unit_measurement"),
-            "value": r.get("value"),
-            "frequency": r.get("freq_collection"),
-            "commodity": r.get("commodity")
-        } for r in registros]
-    
+        resultado = []
+        for i in range(len(registros)):
+            r = registros[i]
+            resultado.append({
+                "year_collection": r["year_collection"] if "year_collection" in r else "",
+                "load_time": r["load_time"] if "load_time" in r else "",
+                "state_name": r["state_name"] if "state_name" in r else "",
+                "source_type": r["source"] if "source" in r else "",
+                "unit": r["unit_measurement"] if "unit_measurement" in r else "",
+                "value": r["value"] if "value" in r else "",
+                "frequency": r["freq_collection"] if "freq_collection" in r else "",
+                "commodity": r["commodity"] if "commodity" in r else ""
+            })
+        return resultado
+
     registros_formateados = formatear_registros(registros_ordenados)
-    
+
     end_time = get_time()
     c_tiempo = delta_time(start_time, end_time)
-   
+
+    count_survey = sum(1 for record in registros_formateados if record['source_type'] == 'SURVEY')
+    count_census = sum(1 for record in registros_formateados if record['source_type'] == 'CENSUS')
+
     report = {
         "execution_time": c_tiempo,
         "total_records": len(filtro),
+        "count_survey": count_survey,
+        "count_census": count_census,
         "last_N_records": registros_formateados
     }
-    
+
     return report
 
 def req_4(catalog, producto, anio_inicial, anio_final):
