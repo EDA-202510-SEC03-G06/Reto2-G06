@@ -331,7 +331,7 @@ def req_6(catalog, departamento, anio_inicial, anio_final):
         anio_coleccion = int(registro["year_collection"]) 
         if registro["department"] == departamento and anio_inicial <= anio_coleccion <= anio_final:
             filtro.append(registro)
-    map.shell_sort(filtro)
+    lp.shell_sort(filtro)
     total_registros = len(filtro)
     total_survey = sum(1 for registro in filtro if registro["source_type"] == "SURVEY")
     total_census = sum(1 for registro in filtro if registro["source_type"] == "CENSUS")
@@ -357,7 +357,72 @@ def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
     Retorna el resultado del requerimiento 7
     """
     # TODO: Modificar el requerimiento 7
+    start_time = get_time()
+    registros = catalog["datos"]
+    filtro = []
+    ingresos_totales = []
+    ingresos_anio = {}
+    total_survey = 0
+    total_census = 0
+    registros_invalidos = 0
+    for registro in registros:
+        if registro["department"] == departamento:
+            anio_coleccion = int(registro["year_collection"])
+            ingreso = registro["income"]
+            unidad_medida = registro["unit_measure"] 
+            if anio_inicial <= anio_coleccion <= anio_final and "$" in unidad_medida:
+                if ingreso.replace('.', '', 1).isdigit():
+                    ingreso = float(ingreso)
+                    filtro.append(registro) 
+                    
+                    if anio_coleccion not in ingresos_anio:
+                        ingresos_anio[anio_coleccion] = {"total": 0, "cantidad": 0, "survey": 0, "census": 0}
+                    ingresos_anio[anio_coleccion]["total"] += ingreso
+                    ingresos_anio[anio_coleccion]["cantidad"] += 1
+                    if registro["source_type"] == "SURVEY":
+                        ingresos_anio[anio_coleccion]["survey"] += 1
+                        total_survey += 1
+                    elif registro["source_type"] == "CENSUS":
+                        ingresos_anio[anio_coleccion]["census"] += 1
+                        total_census += 1
+                else:
+                    registros_invalidos += 1
+    for anio,datos in ingresos_anio.items():
+        total = datos["total"]
+        cantidad = datos["cantidad"]
+        ingresos_totales.append((anio, total, cantidad))
     
+    lp.shell_sort(ingresos_totales, ordenamiento)
+    
+    if ingresos_totales:
+        if ordenamiento == "ASCENDENTE":
+            anio_mayor = ingresos_totales[-1][0]
+            anio_menor = ingresos_totales[0][0]
+        else:
+            anio_mayor = ingresos_totales[0][0]
+            anio_menor = ingresos_totales[-1][0]
+    else:
+        anio_mayor = None
+        anio_menor = None
+        
+    if len(ingresos_totales) > 15:
+        ingresos_totales = ingresos_totales[:5] + ingresos_totales[-5:]  
+    
+    end_time = get_time()
+    execution_time = delta_time(start_time, end_time) 
+    
+    report = {
+        "execution_time": execution_time,
+        "total_records": len(filtro),
+        "survey_count": total_survey,
+        "census_count": total_census,
+        "invalid_records": registros_invalidos,
+        "filtered_data": ingresos_totales,
+        "anio_mayor": anio_mayor,
+        "anio_menor": anio_menor
+    }
+    return report
+
 
 
 def req_8(catalog):
