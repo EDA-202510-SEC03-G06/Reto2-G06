@@ -213,7 +213,31 @@ def print_req_7(control):
         Función que imprime la solución del Requerimiento 7 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 7
-    pass
+    departamento = input("Ingrese el nombre del departamento: ")
+    anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
+    anio_final = int(input("Ingrese el año final (YYYY): "))
+    ordenamiento = input("Ingrese el tipo de ordenamiento (ASCENDENTE o DESCENDENTE): ").upper()
+
+    report = logic.req_7(control, departamento, anio_inicial, anio_final, ordenamiento)
+
+    if report:
+        print("Tiempo de la ejecución:", report["execution_time"], "ms")
+        print("Total registros encontrados:", report["total_records"])
+        print("Total registros con fuente SURVEY:", report["survey_count"])
+        print("Total registros con fuente CENSUS:", report["census_count"])
+        print("Total registros con ingresos no válidos:", report["invalid_records"])
+        print("Años ordenados por ingresos:")
+        for anio_data in report["filtered_data"]:
+            print(f"Año de recopilación: {anio_data[0]}")
+            if anio_data[0] == report["anio_mayor"]:
+                print("Año con mayor ingreso")
+            if anio_data[0] == report["anio_menor"]:
+                print("Año con menor ingreso")
+            print(f"Ingreso total: {anio_data[1]}")
+            print(f"Número de registros para este año: {anio_data[2]}")
+            print("-")
+    else:
+        print("No se encontraron registros para los criterios ingresados")
 
 
 def print_req_8(control):
