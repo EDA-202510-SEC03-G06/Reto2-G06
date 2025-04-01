@@ -27,13 +27,17 @@ def load_data(catalogo, filename='-20.csv', data_dir='data/'):
     """
     Carga los datos del archivo CSV, reformatea y los agrega al catálogo.
     """
+    data_dir = 'Data/'
     ruta = data_dir + 'agricultural' + filename
     lector = csv.DictReader(open(ruta, encoding='utf-8'))
 
     for fila in lector:
 
         fila['year_collection'] = int(fila['year_collection'])
-        fila['value'] = float(fila['value'].replace(',', '')) if fila['value'] != '' else -1
+        try:
+            fila['value'] = float(fila['value'].replace(',', '')) if fila['value'] != '' else -1
+        except ValueError:
+            fila['value'] = -1 
         fila['load_time'] = datetime.datetime.strptime(fila['load_time'], '%Y-%m-%d %H:%M:%S')
         fila['location'] = fila['location'].replace(', ', ',').split(',')
 
