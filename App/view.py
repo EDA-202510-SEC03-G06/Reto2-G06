@@ -236,56 +236,72 @@ def print_req_6(control):
         Función que imprime la solución del Requerimiento 6 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 6
-    departamento = input("Ingrese el nombre del departamento: ")
+    departamento = input("Ingrese el nombre del departamento: ").strip()
     anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
     anio_final = int(input("Ingrese el año final (YYYY): "))
-
-    report = logic.req_6(control, departamento, anio_inicial, anio_final)
-
-    if report:
-        print("Tiempo de la ejecución:", report["execution_time"], "ms")
-        print("Total registros encontrados:", report["total_records"])
-        print("Total registros con fuente SURVEY:", report["survey_count"])
-        print("Total registros con fuente CENSUS:", report["census_count"])
-
-        for record in report["filtered_data"]:
-            for key, value in record.items():
-                print(f"{key}: {value}")
-            print("-")
-    else:
-        print("No se encontraron registros para los criterios ingresados.")    
     
+    report = logic.req_6(control, departamento, anio_inicial, anio_final)
+    
+    if report:
+        print("\n" + "-"*50)
+        print(f"RESULTADOS PARA {departamento} ({anio_inicial}-{anio_final})".center(50))
+        print("-"*50)
+        print(f"Tiempo de ejecución: {report['execution_time']:.2f} ms")
+        print(f"Total registros encontrados: {report['total_records']}")
+        print(f"Registros SURVEY: {report['survey_count']}")
+        print(f"Registros CENSUS: {report['census_count']}")
+        
+        print("\nREGISTROS DESTACADOS:")
+        for i, record in enumerate(report["filtered_data"], 1):
+            print(f"\nRegistro #{i}:")
+            print(f"  • Fuente: {record.get('source_type', 'N/A')}")
+            print(f"  • Año recolección: {record.get('collection_year', 'N/A')}")
+            print(f"  • Fecha carga: {record.get('load_date', 'N/A')}")
+            print(f"  • Frecuencia: {record.get('frequency', 'N/A')}")
+            print(f"  • Departamento: {record.get('department', 'N/A')}")
+            print(f"  • Unidad: {record.get('unit', 'N/A')}")
+            print(f"  • Producto: {record.get('product_type', 'N/A')}")
+    else:
+        print("\nNO se encontraron registros para los criterios ingresados.")
+    print("\n" + "="*50 + "\n")
     
 def print_req_7(control):
     """
         Función que imprime la solución del Requerimiento 7 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 7
-    departamento = input("Ingrese el nombre del departamento: ")
+    departamento = input("Ingrese el nombre del departamento: ").strip()
     anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
     anio_final = int(input("Ingrese el año final (YYYY): "))
-    ordenamiento = input("Ingrese el tipo de ordenamiento (ASCENDENTE o DESCENDENTE): ").upper()
+    ordenamiento = input("Ingrese orden (ASCENDENTE/DESCENDENTE): ").strip()
 
     report = logic.req_7(control, departamento, anio_inicial, anio_final, ordenamiento)
 
     if report:
-        print("Tiempo de la ejecución:", report["execution_time"], "ms")
-        print("Total registros encontrados:", report["total_records"])
-        print("Total registros con fuente SURVEY:", report["survey_count"])
-        print("Total registros con fuente CENSUS:", report["census_count"])
-        print("Total registros con ingresos no válidos:", report["invalid_records"])
-        print("Años ordenados por ingresos:")
+        print("\n" + "-"*50)
+        print(f"INGRESOS AGRÍCOLAS EN {departamento} ({anio_inicial}-{anio_final})".center(50))
+        print("-"*50)
+        print(f"Tiempo ejecución: {report['execution_time']:.2f} ms")
+        print(f"Total registros válidos: {report['total_records']}")
+        print(f"Registros SURVEY: {report['survey_count']}")
+        print(f"Registros CENSUS: {report['census_count']}")
+        print(f"Registros inválidos: {report['invalid_records']}")
+        
+        print("\nRESUMEN POR AÑO (orden {0}):".format(ordenamiento.lower()))
         for anio_data in report["filtered_data"]:
-            print(f"Año de recopilación: {anio_data[0]}")
+            print("\n" + "~"*30)
+            print(f"AÑO: {anio_data[0]}")
             if anio_data[0] == report["anio_mayor"]:
-                print("Año con mayor ingreso")
-            if anio_data[0] == report["anio_menor"]:
-                print("Año con menor ingreso")
-            print(f"Ingreso total: {anio_data[1]}")
-            print(f"Número de registros para este año: {anio_data[2]}")
-            print("-")
+                print("<< AÑO CON MAYOR INGRESO >>")
+            elif anio_data[0] == report["anio_menor"]:
+                print("<< AÑO CON MENOR INGRESO >>")
+            print(f"Ingreso total: ${anio_data[1]:,.2f}")
+            print(f"Total registros: {anio_data[2]}")
+            print(f"  - Survey: {anio_data[3]}")
+            print(f"  - Census: {anio_data[4]}")
     else:
-        print("No se encontraron registros para los criterios ingresados")
+        print("NO se encontraron registros con ingresos válidos para los criterios ingresados.")
+    print("\n" + "="*50 + "\n")
 
 
 def print_req_8(control):
