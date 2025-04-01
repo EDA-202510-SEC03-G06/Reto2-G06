@@ -1,83 +1,102 @@
 import csv
 csv.field_size_limit(2147483647)
 import time
+import os
 import tracemalloc
+import datetime
 from DataStructures.Map.map_functions import next_prime
-
-
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.List import array_list as al
 from DataStructures.Map import map_separate_chaining as scv
 
 def new_logic():
     """
-    Crea el catalogo para almacenar las estructuras de datos
+    Crea el catálogo vacío con las estructuras necesarias.
     """
-    #TODO: Llama a las funciónes de creación de las estructuras de datos}
     catalogo = {
-        "fuentes":lp(),
-        "productos":lp(),
-        "estados":lp(),
-        "datos":al()
+        "list_all_data": al.new_list(),
+        "map_by_departments": lp.new_map(num_elements=60, load_factor=0.5),
+        "map_by_commodity": lp.new_map(num_elements=80, load_factor=0.5)
     }
     return catalogo
 
-
 # Funciones para la carga de datos
 
-def load_data(catalog, filename):
-    """
-    Carga los datos del reto
-    """
-    # TODO: Realizar la carga de datos
-    start_time = get_time()
-    f = open(filename, encoding='utf-8')
-    lines = f.readlines()
-    f.close()
-    
-    headers = lines[0].strip().split(",")
-    if len(lines)>1:
-        first_year = int(lines[1].strip().split(",")[headers.index("year_collection")])
-        min_year = first_year
-        max_year = first_year
-    else:
-        min_year = None
-        max_year = None
-        
-    first_five = []  
-    last_five = [] 
-    total_records = 0
-        
-    for linea in lines[1:]:
-        valores = linea.strip().split(",")
-        record = {headers[i]: valores[i] for i in range(len(headers))}
-        year = int(record["year_collection"])
-        if year < min_year:
-            min_year = year
-        if year > max_year:
-            max_year = year
-            
-        if total_records < 5:
-            first_five.append(record)
+def load_data(catalogo, datos):
+
+    inicio = time.time()
+
+    registros_cargados = 0
+    min_year = float('inf')
+    max_year = float('-inf')
+
+    for fila in datos:
+        if fila['year_collection'].isdigit():
+            fila['year_collection'] = int(fila['year_collection'])
         else:
-            last_five.append(record)
-            if len(last_five) > 5:
-                last_five.pop(0)
-        total_records += 1
+            fila['year_collection'] = -1  
 
-    end_time = get_time()
-    c_tiempo = delta_time(start_time,end_time) 
-    report = {
-        "execution_time": c_tiempo, 
-        "total_records": total_records,  
-        "min_year": min_year,  
-        "max_year": max_year,  
-        "first_five": first_five,  
-        "last_five": last_five  
-    }
-    return report
+        if fila['year_collection'] > 0:
+            if fila['year_collection'] < min_year:
+                min_year = fila['year_collection']
+            if fila['year_collection'] > max_year:
+                max_year = fila['year_collection']
 
+        es_valido = True
+        for c in fila['value']:
+            if not (c.isdigit() or c == ',' or c == '.'):
+                es_valido = False
+                break
 
+        if fila['value'] != '' and es_valido:
+            fila['value'] = float(fila['value'].replace(',', ''))
+        else:
+            fila['value'] = -1  
+
+        partes_fecha = fila['load_time'].split(' ')
+        if len(partes_fecha) == 2:
+            fecha_partes = partes_fecha[0].split('-')
+            hora_partes = partes_fecha[1].split(':')
+            if len(fecha_partes) == 3 and len(hora_partes) == 3:
+                fila['load_time'] = datetime.datetime(
+                    int(fecha_partes[0]), int(fecha_partes[1]), int(fecha_partes[2]),
+                    int(hora_partes[0]), int(hora_partes[1]), int(hora_partes[2])
+                )
+            else:
+                fila['load_time'] = datetime.datetime.min  
+        else:
+            fila['load_time'] = datetime.datetime.min
+
+        fila['location'] = fila['location'].replace(', ', ',').split(',')
+
+        al.add_last(catalogo['list_all_data'], fila)
+        registros_cargados += 1
+
+        depto = fila['state_name']
+        lista_depto = lp.get(catalogo['map_by_departments'], depto)
+        if lista_depto is None:
+            lista_depto = al.new_list()
+            lp.put(catalogo['map_by_departments'], depto, lista_depto)
+        al.add_last(lista_depto, fila)
+
+        producto = fila['commodity']
+        lista_prod = lp.get(catalogo['map_by_commodity'], producto)
+        if lista_prod is None:
+            lista_prod = al.new_list()
+            lp.put(catalogo['map_by_commodity'], producto, lista_prod)
+        al.add_last(lista_prod, fila)
+
+    fin = time.time()  
+    tiempo_ejecucion = fin - inicio
+
+    print(f"\nTiempo de ejecución: {tiempo_ejecucion:.4f} segundos")
+    print(f"Total de registros cargados: {registros_cargados}")
+    print(f"Menor año de recolección: {min_year if min_year != float('inf') else 'N/A'}")
+    print(f"Mayor año de recolección: {max_year if max_year != float('-inf') else 'N/A'}")
+    
+    
+
+    return catalogo
 # Funciones de consulta sobre el catálogo
 
 def get_data(catalog, id):

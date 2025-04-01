@@ -1,6 +1,7 @@
 import sys
 default_limit = 1000
 sys.setrecursionlimit(default_limit*10)
+import csv
 from App import logic
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.List import array_list as al
@@ -10,7 +11,8 @@ def new_logic():
         Se crea una instancia del controlador
     """
     #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
-    pass
+    control = logic.new_logic()
+    return control
 
 def print_menu():
     print("Bienvenido")
@@ -29,11 +31,26 @@ def load_data(control):
     """
     Carga los datos
     """
-    filename = input("Ingrese el nombre del archivo CSV: ")
-    report = logic.load_data(control, filename)
-    print("Resultados de la carga de datos:")
-    print(report)
-    return report
+    ruta = "Data/agricultural-20.csv"  # Asegúrate de que esta ruta sea la correcta
+
+    # Inicializa el contador de registros
+    contador = 0
+    
+    # Abre el archivo CSV
+    with open(ruta, encoding='utf-8') as archivo:
+        lector = csv.DictReader(archivo)
+        
+        # Carga los datos y cuenta los registros
+        datos = []
+        for fila in lector:
+            datos.append(fila)
+            contador += 1  # Incrementa el contador por cada fila
+            
+    # Imprime la cantidad de registros cargados
+    print(f"Se cargaron {contador} registros.")
+    respuesta = logic.load_data(control, datos)       
+    print("cargando datos...")
+    return respuesta
 
 
 def print_data(control, id):
