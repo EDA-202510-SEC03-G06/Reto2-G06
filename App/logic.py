@@ -22,26 +22,55 @@ def new_logic():
 
 # Funciones para la carga de datos
 
-def load_data(catalogo, filename='-20.csv', data_dir='data/'):
+def load_data(catalogo, datos):
 
-    """
-    Carga los datos del archivo CSV, reformatea y los agrega al catálogo.
-    """
-    data_dir = 'Data/'
-    ruta = data_dir + 'agricultural' + filename
-    lector = csv.DictReader(open(ruta, encoding='utf-8'))
+    inicio = time.time()
 
-    for fila in lector:
+    registros_cargados = 0
+    min_year = float('inf')
+    max_year = float('-inf')
 
-        fila['year_collection'] = int(fila['year_collection'])
-        try:
-            fila['value'] = float(fila['value'].replace(',', '')) if fila['value'] != '' else -1
-        except ValueError:
-            fila['value'] = -1 
-        fila['load_time'] = datetime.datetime.strptime(fila['load_time'], '%Y-%m-%d %H:%M:%S')
+    for fila in datos:
+        if fila['year_collection'].isdigit():
+            fila['year_collection'] = int(fila['year_collection'])
+        else:
+            fila['year_collection'] = -1  
+
+        if fila['year_collection'] > 0:
+            if fila['year_collection'] < min_year:
+                min_year = fila['year_collection']
+            if fila['year_collection'] > max_year:
+                max_year = fila['year_collection']
+
+        es_valido = True
+        for c in fila['value']:
+            if not (c.isdigit() or c == ',' or c == '.'):
+                es_valido = False
+                break
+
+        if fila['value'] != '' and es_valido:
+            fila['value'] = float(fila['value'].replace(',', ''))
+        else:
+            fila['value'] = -1  
+
+        partes_fecha = fila['load_time'].split(' ')
+        if len(partes_fecha) == 2:
+            fecha_partes = partes_fecha[0].split('-')
+            hora_partes = partes_fecha[1].split(':')
+            if len(fecha_partes) == 3 and len(hora_partes) == 3:
+                fila['load_time'] = datetime.datetime(
+                    int(fecha_partes[0]), int(fecha_partes[1]), int(fecha_partes[2]),
+                    int(hora_partes[0]), int(hora_partes[1]), int(hora_partes[2])
+                )
+            else:
+                fila['load_time'] = datetime.datetime.min  
+        else:
+            fila['load_time'] = datetime.datetime.min
+
         fila['location'] = fila['location'].replace(', ', ',').split(',')
 
         al.add_last(catalogo['list_all_data'], fila)
+        registros_cargados += 1
 
         depto = fila['state_name']
         lista_depto = lp.get(catalogo['map_by_departments'], depto)
@@ -57,8 +86,17 @@ def load_data(catalogo, filename='-20.csv', data_dir='data/'):
             lp.put(catalogo['map_by_commodity'], producto, lista_prod)
         al.add_last(lista_prod, fila)
 
-    return catalogo
+    fin = time.time()  
+    tiempo_ejecucion = fin - inicio
 
+    print(f"\nTiempo de ejecución: {tiempo_ejecucion:.4f} segundos")
+    print(f"Total de registros cargados: {registros_cargados}")
+    print(f"Menor año de recolección: {min_year if min_year != float('inf') else 'N/A'}")
+    print(f"Mayor año de recolección: {max_year if max_year != float('-inf') else 'N/A'}")
+    
+    
+
+    return catalogo
 # Funciones de consulta sobre el catálogo
 
 def get_data(catalog, id):

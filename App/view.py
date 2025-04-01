@@ -48,9 +48,9 @@ def load_data(control):
             
     # Imprime la cantidad de registros cargados
     print(f"Se cargaron {contador} registros.")
-    
-    # Devuelve los datos cargados
-    return datos
+    respuesta = logic.load_data(control, datos)       
+    print("cargando datos...")
+    return respuesta
 
 
 def print_data(control, id):
