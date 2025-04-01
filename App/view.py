@@ -235,7 +235,7 @@ def print_req_6(control):
         print("Total registros con fuente SURVEY:", report["survey_count"])
         print("Total registros con fuente CENSUS:", report["census_count"])
 
-        for record in report["records"]:
+        for record in report["filtered_data"]:
             for key, value in record.items():
                 print(f"{key}: {value}")
             print("-")

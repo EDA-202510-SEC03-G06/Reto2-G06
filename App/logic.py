@@ -323,10 +323,9 @@ def req_6(catalog, departamento, anio_inicial, anio_final):
     # TODO: Modificar el requerimiento 6
     start_time = get_time()
     filtro = []
-    registros = catalog["datos"]
-    for registro in registros:
+    for registro in catalog["map_by_departments"].get(departamento, []):
         anio_coleccion = int(registro["year_collection"]) 
-        if registro["department"] == departamento and anio_inicial <= anio_coleccion <= anio_final:
+        if registro["state_name"] == departamento and anio_inicial <= anio_coleccion <= anio_final:
             filtro.append(registro)
     lp.shell_sort(filtro)
     total_registros = len(filtro)
@@ -355,18 +354,17 @@ def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
     """
     # TODO: Modificar el requerimiento 7
     start_time = get_time()
-    registros = catalog["datos"]
     filtro = []
     ingresos_totales = []
     ingresos_anio = {}
     total_survey = 0
     total_census = 0
     registros_invalidos = 0
-    for registro in registros:
-        if registro["department"] == departamento:
+    for registro in catalog['map_by_departments'].get(departamento, []):
+        if registro["state_name"] == departamento:
             anio_coleccion = int(registro["year_collection"])
-            ingreso = registro["income"]
-            unidad_medida = registro["unit_measure"] 
+            ingreso = registro["value"]
+            unidad_medida = registro["unit_measurement"] 
             if anio_inicial <= anio_coleccion <= anio_final and "$" in unidad_medida:
                 if ingreso.replace('.', '', 1).isdigit():
                     ingreso = float(ingreso)
@@ -376,20 +374,23 @@ def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
                         ingresos_anio[anio_coleccion] = {"total": 0, "cantidad": 0, "survey": 0, "census": 0}
                     ingresos_anio[anio_coleccion]["total"] += ingreso
                     ingresos_anio[anio_coleccion]["cantidad"] += 1
-                    if registro["source_type"] == "SURVEY":
+                    if registro["source"] == "SURVEY":
                         ingresos_anio[anio_coleccion]["survey"] += 1
                         total_survey += 1
-                    elif registro["source_type"] == "CENSUS":
+                    elif registro["source"] == "CENSUS":
                         ingresos_anio[anio_coleccion]["census"] += 1
                         total_census += 1
                 else:
                     registros_invalidos += 1
+                    
     for anio,datos in ingresos_anio.items():
         total = datos["total"]
         cantidad = datos["cantidad"]
         ingresos_totales.append((anio, total, cantidad))
-    
-    lp.shell_sort(ingresos_totales, ordenamiento)
+    if ordenamiento == "ASCENDENTE":
+        ingresos_totales.sort(key=lambda x: x[1])
+    else:
+        ingresos_totales.sort(key=lambda x: x[1], reverse=True)
     
     if ingresos_totales:
         if ordenamiento == "ASCENDENTE":
