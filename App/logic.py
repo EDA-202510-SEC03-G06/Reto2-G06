@@ -99,7 +99,7 @@ def load_data(catalogo, datos):
     print(f"Total de registros cargados: {registros_cargados}")
     print(f"Menor año de recolección: {min_year if min_year != float('inf') else 'N/A'}")
     print(f"Mayor año de recolección: {max_year if max_year != float('-inf') else 'N/A'}")
-
+    #no muestra los primeros 5 registros y los últimos 5 registros porque no pude, como asi funciona prefiero eso a no entregar nada :()
     return catalogo
 # Funciones de consulta sobre el catálogo
 def get_data(catalog, id):
@@ -141,7 +141,6 @@ def req_1(catalog, anio):
     ultimo_reg = registros_ordenados[0]
     end_time = get_time()
     c_tiempo = delta_time(start_time, end_time)
-    
     report = {
         "execution_time": c_tiempo,
         "total_records": len(filtro),
@@ -247,8 +246,8 @@ def req_4(catalog, producto, anio_inicial, anio_final):
     registros_ordenados = sorted(filtro, key=lambda x: x.get("load_time", datetime.datetime.min), reverse=True)
     #vuelvo a aplicar lambda para ordenar por fecha de carga :)
     total_registros = len(registros_ordenados)
-    total_survey = sum(1 for record in registros_ordenados if record.get("source_type") == "SURVEY")
-    total_census = sum(1 for record in registros_ordenados if record.get("source_type") == "CENSUS")
+    total_survey = sum(1 for record in registros_ordenados if record.get("source") == "SURVEY")
+    total_census = sum(1 for record in registros_ordenados if record.get("source") == "CENSUS")
     
     if total_registros > 10:
         registros_muestra = registros_ordenados[:5] + registros_ordenados[-5:]
@@ -257,7 +256,6 @@ def req_4(catalog, producto, anio_inicial, anio_final):
     
     end_time = get_time()
     c_tiempo = delta_time(start_time, end_time)
-    
     report = {
         "execution_time": c_tiempo,
         "total_records": total_registros,
@@ -265,17 +263,16 @@ def req_4(catalog, producto, anio_inicial, anio_final):
         "total_census": total_census,
         "records": [
             {
-                "source_type": record.get("source_type"),
+                "source_type": record.get("source"),
                 "collection_year": record.get("year_collection"),
                 "load_date": record.get("load_time").strftime("%Y-%m-%d") if record.get("load_time") else "",
-                "frequency": record.get("frequency"),
+                "frequency": record.get("freq_collection"),
                 "department": record.get("state_name"),
-                "unit": record.get("unit")
+                "unit": record.get("unit_measurement-")
             }
             for record in registros_muestra
         ]
     }
-    
     return report
 
 def req_5(catalog, categoria, anio_inicial, anio_final):
@@ -284,15 +281,14 @@ def req_5(catalog, categoria, anio_inicial, anio_final):
     ordenados por fecha de carga (descendente) y departamento (ascendente).
     """
     start_time = get_time()
-    
-    filtro = [record for record in catalog["list_all_data"]["elements"] if (isinstance(record, dict) and record.get("statistical_category", "") == categoria and int(anio_inicial) <= int(record.get("year_collection", 0)) <= int(anio_final))]
+    filtro = [record for record in catalog["list_all_data"]["elements"] if (isinstance(record, dict) and record.get("statical_category", "") == categoria and int(anio_inicial) <= int(record.get("year_collection", 0)) <= int(anio_final))]
     if not filtro:
         return None
 
     registros_ordenados = sorted(filtro, key=lambda x: (-x.get("load_time", datetime.datetime.min).timestamp(),x.get("state_name", "")))
     
-    total_survey = sum(1 for r in registros_ordenados if r.get("source_type") == "SURVEY")
-    total_census = sum(1 for r in registros_ordenados if r.get("source_type") == "CENSUS")
+    total_survey = sum(1 for r in registros_ordenados if r.get("source") == "SURVEY")
+    total_census = sum(1 for r in registros_ordenados if r.get("source") == "CENSUS")
     
     if len(registros_ordenados) > 20:
         registros_muestra = registros_ordenados[:5] + registros_ordenados[-5:]
@@ -306,12 +302,13 @@ def req_5(catalog, categoria, anio_inicial, anio_final):
         "total_census": total_census,
         "records": [
             {
-                "source_type": record.get("source_type", "N/A"),
+                "source_type": record.get("source", "N/A"),
                 "collection_year": record.get("year_collection", "N/A"),
+                "statical_category": record["statical_category"],
                 "load_date": record.get("load_time").strftime("%Y-%m-%d") if record.get("load_time") else "N/A",
-                "frequency": record.get("frequency", "N/A"),
+                "frequency": record.get("freq_collection", "N/A"),
                 "department": record.get("state_name", "N/A"),
-                "unit": record.get("unit", "N/A"),
+                "unit": record.get("unit_measurement", "N/A"),
                 "product_type": record.get("commodity", "N/A")
             }
             for record in registros_muestra
