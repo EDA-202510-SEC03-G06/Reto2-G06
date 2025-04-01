@@ -130,8 +130,8 @@ def req_1(catalog, anio):
             "year_collection": r.get("year_collection"),
             "load_time": r.get("load_time"),
             "state_name": r.get("state_name"),
-            "source_type": r.get("source_type"),
-            "unit": r.get("unit"),
+            "source_type": r.get("source"),
+            "unit": r.get("unit_measurement"),
             "value": r.get("value")
         } for r in registros]
     
@@ -146,11 +146,11 @@ def req_1(catalog, anio):
         "last_record": {
             "year_collection": ultimo_reg.get("year_collection"),
             "load_time": ultimo_reg.get("load_time"),
-            "source_type": ultimo_reg.get("source_type"),
-            "frequency": ultimo_reg.get("frequency"),
+            "source_type": ultimo_reg.get("source"),
+            "frequency": ultimo_reg.get("freq_collection"),
             "state_name": ultimo_reg.get("state_name"),
             "commodity": ultimo_reg.get("commodity"),
-            "unit": ultimo_reg.get("unit"),
+            "unit": ultimo_reg.get("unit_measurement"),
             "value": ultimo_reg.get("value")
         },
         "first_five": primeros_5_formateados,
@@ -180,10 +180,10 @@ def req_2(catalog, departamento, N):
             "year_collection": r.get("year_collection"),
             "load_time": r.get("load_time"),
             "state_name": r.get("state_name"),
-            "source_type": r.get("source_type"),
-            "unit": r.get("unit"),
+            "source_type": r.get("source"),
+            "unit": r.get("unit_measurement"),
             "value": r.get("value"),
-            "frequency": r.get("frequency"),
+            "frequency": r.get("freq_collection"),
             "commodity": r.get("commodity")
         } for r in registros]
     
@@ -219,6 +219,7 @@ def req_3(catalog, departamento, anio_inicial, anio_final):
     
     registros_ordenados = sorted(filtro, key=lambda x: (x.get("load_time"), x.get("state_name")), reverse=True)
     
+    
     if len(registros_ordenados) > 20:
         registros_ordenados = registros_ordenados[:5] + registros_ordenados[-5:]
     
@@ -227,10 +228,10 @@ def req_3(catalog, departamento, anio_inicial, anio_final):
             "year_collection": r.get("year_collection"),
             "load_time": r.get("load_time"),
             "state_name": r.get("state_name"),
-            "source_type": r.get("source_type"),
-            "unit": r.get("unit"),
+            "source_type": r.get("source"),
+            "unit": r.get("unit_measurement"),
             "value": r.get("value"),
-            "frequency": r.get("frequency"),
+            "frequency": r.get("freq_collection"),
             "commodity": r.get("commodity")
         } for r in registros]
     
