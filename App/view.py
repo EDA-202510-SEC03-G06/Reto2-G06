@@ -131,7 +131,28 @@ def print_req_3(control):
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
+    departamento = input("Ingrese el nombre del departamento: ")
+    anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
+    anio_final = int(input("Ingrese el año final (YYYY): "))
     
+    report = logic.req_3(control, departamento, anio_inicial, anio_final)
+    
+    if report:
+        print(f"\nTiempo de ejecución: {report['execution_time']} ms")
+        print(f"Total de registros encontrados: {report['total_records']}")
+        
+        print("\nRegistros:")
+        for record in report["last_N_records"]:
+            print(f"Tipo de fuente/origen: {record['source_type']}")
+            print(f"\nAño de recopilación: {record['year_collection']}")
+            print(f"Fecha de carga: {record['load_time']}")
+            print(f"Frecuencia de recopilación: {record['frequency']}")
+            print(f"Nombre del departamento: {record['state_name']}")
+            print(f"Tipo del producto: {record['commodity']}")
+            print(f"Unidad de medición: {record['unit']}")
+            print(f"Valor de la medición: {record['value']}")
+    else:
+        print("No se encontraron registros para los parámetros especificados.")
 
 def print_req_4(control):
     """
