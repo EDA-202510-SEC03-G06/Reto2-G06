@@ -154,3 +154,16 @@ def rehash(my_map):
         put(my_map, entry['key'], entry['value'])
 
     return my_map
+
+def shell_sort(records):
+    n = len(records)
+    gap = n // 2
+    while gap > 0:
+        for i in range(gap, n):
+            temp = records[i]
+            j = i
+            while j >= gap and (records[j - gap]["load_date"], records[j - gap]["department"]) < (temp["load_date"], temp["department"]):
+                records[j] = records[j - gap]
+                j -= gap
+            records[j] = temp
+            gap //= 2

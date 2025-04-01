@@ -16,14 +16,13 @@ def new_logic():
     catalogo = {
         "list_all_data": al.new_list(),
         "map_by_departments": lp.new_map(num_elements=60, load_factor=0.5),
-        "map_by_commodity": lp.new_map(num_elements=80, load_factor=0.5)
+        "map_by_commodity": lp.new_map(num_elements=80, load_factor=0.5),
+        
     }
     return catalogo
 
 # Funciones para la carga de datos
-
 def load_data(catalogo, datos):
-
     inicio = time.time()
 
     registros_cargados = 0
@@ -31,7 +30,7 @@ def load_data(catalogo, datos):
     max_year = float('-inf')
 
     for fila in datos:
-        if fila['year_collection'].isdigit():
+        if 'year_collection' in fila and str(fila['year_collection']).isdigit():
             fila['year_collection'] = int(fila['year_collection'])
         else:
             fila['year_collection'] = -1  
@@ -43,62 +42,66 @@ def load_data(catalogo, datos):
                 max_year = fila['year_collection']
 
         es_valido = True
-        for c in fila['value']:
-            if not (c.isdigit() or c == ',' or c == '.'):
-                es_valido = False
-                break
+        if 'value' in fila:
+            for c in fila['value']:
+                if not (c.isdigit() or c == ',' or c == '.'): #isdigit() es una funcion que devuelve True si el valor es un entero fuente: https://keepcoding.io/blog/funcion-isdigit-en-python/
 
-        if fila['value'] != '' and es_valido:
-            fila['value'] = float(fila['value'].replace(',', ''))
-        else:
-            fila['value'] = -1  
-
-        partes_fecha = fila['load_time'].split(' ')
-        if len(partes_fecha) == 2:
-            fecha_partes = partes_fecha[0].split('-')
-            hora_partes = partes_fecha[1].split(':')
-            if len(fecha_partes) == 3 and len(hora_partes) == 3:
-                fila['load_time'] = datetime.datetime(
-                    int(fecha_partes[0]), int(fecha_partes[1]), int(fecha_partes[2]),
-                    int(hora_partes[0]), int(hora_partes[1]), int(hora_partes[2])
-                )
+                    es_valido = False
+                    break
+                #Uso un break para salir de la función, ya que no se puede usar return dentro de un for y lo vi en google
+            if fila['value'] != '' and es_valido:
+                fila['value'] = float(fila['value'].replace(',', ''))
             else:
-                fila['load_time'] = datetime.datetime.min  
-        else:
-            fila['load_time'] = datetime.datetime.min
+                fila['value'] = -1  
+        
+        if 'load_time' in fila:
+            partes_fecha = fila['load_time'].split(' ')
+            if len(partes_fecha) == 2:
+                fecha_partes = partes_fecha[0].split('-')
+                hora_partes = partes_fecha[1].split(':')
+                if len(fecha_partes) == 3 and len(hora_partes) == 3:
+                    try:
+                        fila['load_time'] = datetime.datetime(
+                            int(fecha_partes[0]), int(fecha_partes[1]), int(fecha_partes[2]),
+                            int(hora_partes[0]), int(hora_partes[1]), int(hora_partes[2]))
+                    except:
+                        fila['load_time'] = datetime.datetime.min
+                else:
+                    fila['load_time'] = datetime.datetime.min
+            else:
+                fila['load_time'] = datetime.datetime.min
 
-        fila['location'] = fila['location'].replace(', ', ',').split(',')
+        if 'location' in fila:
+            fila['location'] = fila['location'].replace(', ', ',').split(',')
 
         al.add_last(catalogo['list_all_data'], fila)
         registros_cargados += 1
 
-        depto = fila['state_name']
-        lista_depto = lp.get(catalogo['map_by_departments'], depto)
-        if lista_depto is None:
-            lista_depto = al.new_list()
-            lp.put(catalogo['map_by_departments'], depto, lista_depto)
-        al.add_last(lista_depto, fila)
+        if 'state_name' in fila:
+            depto = fila['state_name']
+            lista_depto = lp.get(catalogo['map_by_departments'], depto)
+            if lista_depto is None:
+                lista_depto = al.new_list()
+                lp.put(catalogo['map_by_departments'], depto, lista_depto)
+            al.add_last(lista_depto, fila)
 
-        producto = fila['commodity']
-        lista_prod = lp.get(catalogo['map_by_commodity'], producto)
-        if lista_prod is None:
-            lista_prod = al.new_list()
-            lp.put(catalogo['map_by_commodity'], producto, lista_prod)
-        al.add_last(lista_prod, fila)
+        if 'commodity' in fila:
+            producto = fila['commodity']
+            lista_prod = lp.get(catalogo['map_by_commodity'], producto)
+            if lista_prod is None:
+                lista_prod = al.new_list()
+                lp.put(catalogo['map_by_commodity'], producto, lista_prod)
+            al.add_last(lista_prod, fila)
 
-    fin = time.time()  
-    tiempo_ejecucion = fin - inicio
-
+    fin = time.time()
+    tiempo_ejecucion = delta_time(inicio, fin)
     print(f"\nTiempo de ejecución: {tiempo_ejecucion:.4f} segundos")
     print(f"Total de registros cargados: {registros_cargados}")
     print(f"Menor año de recolección: {min_year if min_year != float('inf') else 'N/A'}")
     print(f"Mayor año de recolección: {max_year if max_year != float('-inf') else 'N/A'}")
-    
-    
 
     return catalogo
 # Funciones de consulta sobre el catálogo
-
 def get_data(catalog, id):
     """
     Retorna un dato por su ID.
@@ -111,40 +114,51 @@ def get_data(catalog, id):
 
 
 def req_1(catalog, anio):
-    """
-    Retorna el resultado del requerimiento 1
-    """
-    # TODO: Modificar el requerimiento 1
     start_time = get_time()
-    registro = catalog["datos"]
-    
-    filtro = [registro for valor in registro if valor["anio_collection"] == anio]
+    filtro = [registro for registro in catalog["list_all_data"]["elements"] if isinstance(registro, dict) and registro.get("year_collection", -1) == int(anio)]
+            # isinstance(registro, dict) lo uso para verificar que el registro es un diccionario, la informacion de esta funcion salio de: https://interactivechaos.com/es/python/function/isinstance
     if not filtro:
-        return {"aviso": f"no se encontraron registros para el año {anio}"}
+        return None
     
-    ultimo_reg = filtro[0]
-    for registro in filtro:
-        if registro["load_date"] > ultimo_reg["load_date"]:
-            ultimo_reg = registro
+    registros_ordenados = sorted(filtro, key=lambda x: x.get("load_time", datetime.datetime.min), reverse=True)
+    # lambda x: x.get("load_time", datetime.datetime.min) es una funcion que devuelve el valor de la clave "load_time" de un diccionario, si no existe devuelve datetime.datetime.min
+    #la informacion de esta funcion salio de: https://www.freecodecamp.org/espanol/news/expresiones-lambda-en-python/
+    primeros_5 = registros_ordenados[:5]
+    ultimos_5 = registros_ordenados[-5:] if len(registros_ordenados) >= 5 else registros_ordenados
+    
+    def formatear_registros(registros):
+        return [{
+            "year_collection": r.get("year_collection"),
+            "load_time": r.get("load_time"),
+            "state_name": r.get("state_name"),
+            "source_type": r.get("source_type"),
+            "unit": r.get("unit"),
+            "value": r.get("value")
+        } for r in registros]
+    
+    primeros_5_formateados = formatear_registros(primeros_5)
+    ultimos_5_formateados = formatear_registros(ultimos_5)
+    ultimo_reg = registros_ordenados[0]
     end_time = get_time()
-    c_tiempo= delta_time(start_time,end_time)
+    c_tiempo = delta_time(start_time, end_time)
     
     report = {
         "execution_time": c_tiempo,
         "total_records": len(filtro),
         "last_record": {
-            "year_collection": ultimo_reg["year_collection"],
-            "load_date": ultimo_reg["load_date"],
-            "source_type": ultimo_reg["source_type"],
-            "frequency": ultimo_reg["frequency"],
-            "department": ultimo_reg["department"],
-            "product_type": ultimo_reg["product_type"],
-            "unit": ultimo_reg["unit"],
-            "value": ultimo_reg["value"]
-        }
+            "year_collection": ultimo_reg.get("year_collection"),
+            "load_time": ultimo_reg.get("load_time"),
+            "source_type": ultimo_reg.get("source_type"),
+            "frequency": ultimo_reg.get("frequency"),
+            "state_name": ultimo_reg.get("state_name"),
+            "commodity": ultimo_reg.get("commodity"),
+            "unit": ultimo_reg.get("unit"),
+            "value": ultimo_reg.get("value")
+        },
+        "first_five": primeros_5_formateados,
+        "last_five": ultimos_5_formateados
     }
     return report
-
 
 def req_2(catalog, departamento, N):
     """
@@ -224,25 +238,26 @@ def req_3(catalog, departamento, anio_inicial, anio_final):
 
 
 def req_4(catalog, producto, anio_inicial, anio_final):
-    """
-    Retorna el resultado del requerimiento 4
-    """
-    # TODO: Modificar el requerimiento 4
     start_time = get_time()
-    registro = catalog["datos"]
-    filtro = [registro for valor in registro if valor["product_type"] == producto and anio_inicial <= registro["collection_year"] <= anio_final]
+    #vuelvo a usar isinstance para verificar que el registro es un diccionario
+    filtro = [registro for registro in catalog["list_all_data"]["elements"] if (isinstance(registro, dict) and registro.get("commodity") == producto and int(anio_inicial) <= registro.get("year_collection", -1) <= int(anio_final))]
     if not filtro:
         return None
     
-    lp.shell_sort(filtro)
-    total_registros = len(filtro)
-    total_survey = sum(1 for record in filtro if record["source_type"] == "SURVEY")
-    total_census = sum(1 for record in filtro if record["source_type"] == "CENSUS")
+    registros_ordenados = sorted(filtro, key=lambda x: x.get("load_time", datetime.datetime.min), reverse=True)
+    #vuelvo a aplicar lambda para ordenar por fecha de carga :)
+    total_registros = len(registros_ordenados)
+    total_survey = sum(1 for record in registros_ordenados if record.get("source_type") == "SURVEY")
+    total_census = sum(1 for record in registros_ordenados if record.get("source_type") == "CENSUS")
     
-    if total_registros > 20:
-        filtro = filtro[:5] + filtro[-5:]
+    if total_registros > 10:
+        registros_muestra = registros_ordenados[:5] + registros_ordenados[-5:]
+    else:
+        registros_muestra = registros_ordenados
+    
     end_time = get_time()
-    c_tiempo= delta_time(start_time,end_time)
+    c_tiempo = delta_time(start_time, end_time)
+    
     report = {
         "execution_time": c_tiempo,
         "total_records": total_registros,
@@ -250,61 +265,58 @@ def req_4(catalog, producto, anio_inicial, anio_final):
         "total_census": total_census,
         "records": [
             {
-                "source_type": record["source_type"],
-                "collection_year": record["collection_year"],
-                "load_date": record["load_date"],
-                "frequency": record["frequency"],
-                "department": record["department"],
-                "unit": record["unit"]
+                "source_type": record.get("source_type"),
+                "collection_year": record.get("year_collection"),
+                "load_date": record.get("load_time").strftime("%Y-%m-%d") if record.get("load_time") else "",
+                "frequency": record.get("frequency"),
+                "department": record.get("state_name"),
+                "unit": record.get("unit")
             }
-            for record in filtro
+            for record in registros_muestra
         ]
     }
     
     return report
-    pass
 
-
-def req_5(catalog,categoria, anio_inicial, anio_final):
+def req_5(catalog, categoria, anio_inicial, anio_final):
     """
-    Retorna el resultado del requerimiento 5
+    Retorna los registros filtrados por categoría estadística y rango de años,
+    ordenados por fecha de carga (descendente) y departamento (ascendente).
     """
-    # TODO: Modificar el requerimiento 5
     start_time = get_time()
-    registro = catalog["datos"]
-    filtro = [record for record in registro if record["statistical_category"] == categoria and anio_inicial <= record["collection_year"] <= anio_final]
+    
+    filtro = [record for record in catalog["list_all_data"]["elements"] if (isinstance(record, dict) and record.get("statistical_category", "") == categoria and int(anio_inicial) <= int(record.get("year_collection", 0)) <= int(anio_final))]
     if not filtro:
         return None
-    lp.shell_sort(filtro)
-    total_registros = len(filtro)
-    total_survey = sum(1 for record in filtro if record["source_type"] == "SURVEY")
-    total_census = sum(1 for record in filtro if record["source_type"] == "CENSUS")
+
+    registros_ordenados = sorted(filtro, key=lambda x: (-x.get("load_time", datetime.datetime.min).timestamp(),x.get("state_name", "")))
     
-    if total_registros > 20:
-        filtro = filtro[:5] + filtro[-5:]
-        
-    end_time = get_time()
-    c_tiempo= delta_time(start_time,end_time)
+    total_survey = sum(1 for r in registros_ordenados if r.get("source_type") == "SURVEY")
+    total_census = sum(1 for r in registros_ordenados if r.get("source_type") == "CENSUS")
+    
+    if len(registros_ordenados) > 20:
+        registros_muestra = registros_ordenados[:5] + registros_ordenados[-5:]
+    else:
+        registros_muestra = registros_ordenados
     
     report = {
-        "execution_time": c_tiempo,
-        "total_records": total_registros,
+        "execution_time": delta_time(start_time, get_time()),
+        "total_records": len(registros_ordenados),
         "total_survey": total_survey,
         "total_census": total_census,
         "records": [
             {
-                "source_type": record["source_type"],
-                "collection_year": record["collection_year"],
-                "load_date": record["load_date"],
-                "frequency": record["frequency"],
-                "department": record["department"],
-                "unit": record["unit"],
-                "product_type": record["product_type"]
+                "source_type": record.get("source_type", "N/A"),
+                "collection_year": record.get("year_collection", "N/A"),
+                "load_date": record.get("load_time").strftime("%Y-%m-%d") if record.get("load_time") else "N/A",
+                "frequency": record.get("frequency", "N/A"),
+                "department": record.get("state_name", "N/A"),
+                "unit": record.get("unit", "N/A"),
+                "product_type": record.get("commodity", "N/A")
             }
-            for record in filtro
+            for record in registros_muestra
         ]
     }
-    
     return report
 
 def req_6(catalog, departamento, anio_inicial, anio_final):

@@ -31,22 +31,17 @@ def load_data(control):
     """
     Carga los datos
     """
-    ruta = "Data/agricultural-20.csv"  # Asegúrate de que esta ruta sea la correcta
-
-    # Inicializa el contador de registros
+    ruta = "Data/agricultural-20.csv"  
     contador = 0
     
-    # Abre el archivo CSV
     with open(ruta, encoding='utf-8') as archivo:
         lector = csv.DictReader(archivo)
         
-        # Carga los datos y cuenta los registros
         datos = []
         for fila in lector:
             datos.append(fila)
-            contador += 1  # Incrementa el contador por cada fila
+            contador += 1
             
-    # Imprime la cantidad de registros cargados
     print(f"Se cargaron {contador} registros.")
     respuesta = logic.load_data(control, datos)       
     print("cargando datos...")
@@ -72,7 +67,7 @@ def print_req_1(control):
         Función que imprime la solución del Requerimiento 1 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 1
-    year = input("Ingrese el año de interés (YYYY): ")
+    year = int(input("Ingrese el año de interés (YYYY): "))
     report = logic.req_1(control, year)
     if report:
         print("Tiempo de ejecución:", report["execution_time"], "ms")
@@ -80,9 +75,28 @@ def print_req_1(control):
         print("Último registro encontrado:")
         for key, value in report["last_record"].items():
             print(f"{key}: {value}")
+        print("\nPrimeros 5 registros:")
+        for i, reg in enumerate(report["first_five"], 1):
+            print(f"Registro {i}:")
+            print(f"Año de recolección: {reg['year_collection']}")
+            print(f"Fecha de carga: {reg['load_time']}")
+            print(f"Departamento: {reg['state_name']}")
+            print(f"Fuente: {reg['source_type']}")
+            print(f"Unidad: {reg['unit']}")
+            print(f"Valor: {reg['value']}")
+            print("-" * 40)
 
-    pass
-
+        print("\nÚltimos 5 registros:")
+        for i, reg in enumerate(report["last_five"], 1):
+            print(f"Registro {i}:")
+            print(f"Año de recolección: {reg['year_collection']}")
+            print(f"Fecha de carga: {reg['load_time']}")
+            print(f"Departamento: {reg['state_name']}")
+            print(f"Fuente: {reg['source_type']}")
+            print(f"Unidad: {reg['unit']}")
+            print(f"Valor: {reg['value']}")
+            print("-" * 40)
+    pass 
 
 def print_req_2(control):
     """
@@ -133,56 +147,77 @@ def print_req_3(control):
 
 def print_req_4(control):
     """
-        Función que imprime la solución del Requerimiento 4 en consola
+    Función que imprime la solución del Requerimiento 4 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 4
-    producto = input("ingrese el tipo de producto: ")
-    anio_inicial = int(input("ingrese el año iniciald: "))
-    anio_final = int(input("ingrese el año final: "))
+    producto = input("Ingrese el tipo de producto (ej. HOGS, SHEEP): ").strip()
+    anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
+    anio_final = int(input("Ingrese el año final (YYYY): "))
     
     report = logic.req_4(control, producto, anio_inicial, anio_final)
     
     if report:
-        print("Execution time:", report["execution_time"], "ms")
-        print("Total records found:", report["total_records"])
-        print("Records with SURVEY source:", report["total_survey"])
-        print("Records with CENSUS source:", report["total_census"])
-        print("List of records:")
-        for record in report["records"]:
-            for key, value in record.items():
-                print(f"{key}: {value}")
-            print("-")
+        print("\n" + "="*60)
+        print(f"{'RESULTADOS DEL REQUERIMIENTO 4':^60}")
+        print("="*60)
+        print(f"Tiempo de ejecución: {report['execution_time']:.3f} ms")
+        print(f"Total de registros encontrados: {report['total_records']}")
+        print(f"Registros con fuente SURVEY: {report['total_survey']}")
+        print(f"Registros con fuente CENSUS: {report['total_census']}")
+        
+        print("\n" + "-"*60)
+        print(f"{'REGISTROS ENCONTRADOS':^60}")
+        print("-"*60)
+        
+        for i, record in enumerate(report['records'], 1):
+            print(f"\nRegistro #{i}:")
+            print(f"• Tipo de fuente: {record['source_type']}")
+            print(f"• Año de recopilación: {record['collection_year']}")
+            print(f"• Fecha de carga: {record['load_date']}")
+            print(f"• Frecuencia: {record['frequency']}")
+            print(f"• Departamento: {record['department']}")
+            print(f"• Unidad de medida: {record['unit']}")
+            if i < len(report['records']):
+                print("-"*40)
     else:
-        print("No hay recursos encontrados segun los criterios dados.")
-    pass
-
+        print("\nNo se encontraron registros que coincidan con los criterios de búsqueda.")
 
 def print_req_5(control):
     """
-        Función que imprime la solución del Requerimiento 5 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 5
-    categoria = input("ingrese el tipo de producto: ")
-    anio_inicial = int(input("ingrese el año iniciald: "))
-    anio_final = int(input("ingrese el año final: "))
+    Muestra los resultados del Requerimiento 5 de manera organizada.
+    """  
+    categoria = input("Ingrese la categoría estadística (ej. INVENTORY, SALES): ").strip()
+    anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
+    anio_final = int(input("Ingrese el año final (YYYY): "))
     
     report = logic.req_5(control, categoria, anio_inicial, anio_final)
     
     if report:
-        print("Execution time:", report["execution_time"], "ms")
-        print("Total records found:", report["total_records"])
-        print("Records with SURVEY source:", report["total_survey"])
-        print("Records with CENSUS source:", report["total_census"])
-        print("List of records:")
-        for record in report["records"]:
-            for key, value in record.items():
-                print(f"{key}: {value}")
-            print("-")
+        print("\n" + "="*60)
+        print(f"{'RESULTADOS':^60}")
+        print("="*60)
+        print(f"• Tiempo de ejecución: {report['execution_time']:.3f} ms")
+        print(f"• Total registros: {report['total_records']}")
+        print(f"• Registros SURVEY: {report['total_survey']}")
+        print(f"• Registros CENSUS: {report['total_census']}")
+        
+        print("\n" + "-"*60)
+        print(f"{'REGISTROS ENCONTRADOS':^60}")
+        print("-"*60)
+        
+        for i, record in enumerate(report['records'], 1):
+            print(f"\n[Registro {i}]")
+            print(f"  Fuente: {record['source_type']}")
+            print(f"  Año recopilación: {record['collection_year']}")
+            print(f"  Fecha carga: {record['load_date']}")
+            print(f"  Frecuencia: {record['frequency']}")
+            print(f"  Departamento: {record['department']}")
+            print(f"  Unidad: {record['unit']}")
+            print(f"  Producto: {record['product_type']}")
+            print("-"*40 if i < len(report['records']) else "")
     else:
-        print("No hay recursos encontrados segun los criterios dados.")
+        print("\n¡No se encontraron registros para los criterios especificados!")
+        print("Revise la categoría y el rango de años.")
     pass
-
-
 def print_req_6(control):
     """
         Función que imprime la solución del Requerimiento 6 en consola
