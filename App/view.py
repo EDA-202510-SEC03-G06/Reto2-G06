@@ -32,7 +32,7 @@ def load_data(control):
     """
     Carga los datos
     """
-    ruta = "Data/agricultural-20.csv"  
+    ruta = "Data/agricultural-100.csv"  
     contador = 0
     
     with open(ruta, encoding='utf-8') as archivo:
@@ -71,6 +71,7 @@ def print_req_1(control):
     year = int(input("Ingrese el año de interés (YYYY): "))
     report = logic.req_1(control, year)
     if report:
+        print("\n" + "="*60)
         print("Tiempo de ejecución:", report["execution_time"], "ms")
         print("Total de registros encontrados:", report["total_records"])
         print("Último registro encontrado:")
@@ -173,8 +174,6 @@ def print_req_4(control):
     
     if report:
         print("\n" + "="*60)
-        print(f"{'RESULTADOS DEL REQUERIMIENTO 4':^60}")
-        print("="*60)
         print(f"Tiempo de ejecución: {report['execution_time']:.3f} ms")
         print(f"Total de registros encontrados: {report['total_records']}")
         print(f"Registros con fuente SURVEY: {report['total_survey']}")
@@ -209,8 +208,6 @@ def print_req_5(control):
     
     if report:
         print("\n" + "="*60)
-        print(f"{'RESULTADOS':^60}")
-        print("="*60)
         print(f"• Tiempo de ejecución: {report['execution_time']:.3f} ms")
         print(f"• Total registros: {report['total_records']}")
         print(f"• Registros SURVEY: {report['total_survey']}")

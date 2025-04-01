@@ -300,7 +300,7 @@ def req_4(catalog, producto, anio_inicial, anio_final):
                 "load_date": record.get("load_time").strftime("%Y-%m-%d") if record.get("load_time") else "",
                 "frequency": record.get("freq_collection"),
                 "department": record.get("state_name"),
-                "unit": record.get("unit_measurement-")
+                "unit": record.get("unit_measurement")
             }
             for record in registros_muestra
         ]
