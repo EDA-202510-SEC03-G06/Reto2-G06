@@ -348,38 +348,68 @@ def req_5(catalog, categoria, anio_inicial, anio_final):
     }
     return report
 
-def req_6(catalog, departamento, anio_inicial, anio_final):
+def req_6(catalog, departamento, fecha_inicial, fecha_final):
     """
     Retorna el resultado del requerimiento 6
     """
-    # TODO: Modificar el requerimiento 6
     start_time = get_time()
     filtro = []
-    
-    for registro in catalog["map_by_departments"].get(departamento, []):
-        anio_coleccion = int(registro["year_collection"]) 
-        if registro["state_name"] == departamento and anio_inicial <= anio_coleccion <= anio_final:
-            filtro.append(registro)
-    lp.shell_sort(filtro)
+
+    fecha_inicial = datetime.datetime.strptime(fecha_inicial, "%Y-%m-%d")
+    fecha_final = datetime.datetime.strptime(fecha_final, "%Y-%m-%d")
+    #strptime me convierte una string en un objeto datetimr
+
+
+    # Filtrar por departamento y rango de fechas
+    for registro in catalog["list_all_data"]["elements"]:
+        if registro.get("state_name") == departamento:
+            fecha_carga = registro.get("load_time")
+            if fecha_carga and fecha_inicial <= fecha_carga <= fecha_final:
+                filtro.append(registro)
+
+     
+    #Por fecha de carga - load_time (descendente por el -) y por departamento (ascendente)
+    filtro.sort(key=lambda x: (-x["load_time"].timestamp(), x["state_name"]))
+
+
     total_registros = len(filtro)
-    total_survey = sum(1 for registro in filtro if registro["source"] == "SURVEY")
-    total_census = sum(1 for registro in filtro if registro["source"] == "CENSUS")
+    total_survey = sum(1 for registro in filtro if registro.get("source") == "SURVEY")
+    total_census = sum(1 for registro in filtro if registro.get("source") == "CENSUS")
+
+
     if total_registros > 20:
-        datos_filtrados = filtro[:5] + filtro[-5:] 
+        datos_filtrados = filtro[:5] + filtro[-5:]
     else:
         datos_filtrados = filtro
+
+    #rewgistros formateados.
+    #Me guié del req 5 :)
+    registros_formateados = [
+        {
+            "source_type": registro.get("source", "N/A"),
+            "collection_year": registro.get("year_collection", "N/A"),
+            "load_date": registro["load_time"].strftime("%Y-%m-%d") if registro.get("load_time") else "N/A",
+            "frequency": registro.get("freq_collection", "N/A"),
+            "department": registro.get("state_name", "N/A"),
+            "unit": registro.get("unit_measurement", "N/A"),
+            "product_type": registro.get("commodity", "N/A"),
+        }
+
+        for registro in datos_filtrados
+    ]
+
     end_time = get_time()
-    execution_time = delta_time(start_time,end_time)
+    execution_time = delta_time(start_time, end_time)
+
     report = {
         "execution_time": execution_time,
         "total_records": total_registros,
         "survey_count": total_survey,
         "census_count": total_census,
-        "filtered_data": datos_filtrados
+        "filtered_data": registros_formateados,
     }
     return report
     
-        
     
 def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
     """
@@ -387,61 +417,95 @@ def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
     """
     # TODO: Modificar el requerimiento 7
     start_time = get_time()
+    
+    # Obtener la lista de registros para el departamento
+    lista_depto = lp.get(catalog['map_by_departments'], departamento)
+    if lista_depto is None:
+        lista_depto = al.new_list()
+    
     filtro = []
-    ingresos_totales = []
     ingresos_anio = {}
     total_survey = 0
     total_census = 0
     registros_invalidos = 0
-    for registro in catalog['map_by_departments'].get(departamento, []):
-        if registro["state_name"] == departamento:
-            anio_coleccion = int(registro["year_collection"])
-            ingreso = registro["value"]
-            unidad_medida = registro["unit_measurement"] 
-            if anio_inicial <= anio_coleccion <= anio_final and "$" in unidad_medida:
-                if ingreso.replace('.', '', 1).isdigit():
-                    ingreso = float(ingreso)
-                    filtro.append(registro) 
-                    
-                    if anio_coleccion not in ingresos_anio:
-                        ingresos_anio[anio_coleccion] = {"total": 0, "cantidad": 0, "survey": 0, "census": 0}
-                    ingresos_anio[anio_coleccion]["total"] += ingreso
-                    ingresos_anio[anio_coleccion]["cantidad"] += 1
-                    if registro["source"] == "SURVEY":
-                        ingresos_anio[anio_coleccion]["survey"] += 1
-                        total_survey += 1
-                    elif registro["source"] == "CENSUS":
-                        ingresos_anio[anio_coleccion]["census"] += 1
-                        total_census += 1
-                else:
-                    registros_invalidos += 1
-                    
-    for anio,datos in ingresos_anio.items():
-        total = datos["total"]
-        cantidad = datos["cantidad"]
-        ingresos_totales.append((anio, total, cantidad))
-    if ordenamiento == "ASCENDENTE":
-        ingresos_totales.sort(key=lambda x: x[1])
-    else:
-        ingresos_totales.sort(key=lambda x: x[1], reverse=True)
     
+    # Iterar sobre los registros del departamento
+    for i in range(1, al.size(lista_depto) + 1):
+        registro = al.get_element(lista_depto, i)
+        
+        anio_coleccion = registro["year_collection"]
+        unidad_medida = registro["unit_measurement"]
+        
+        # Verificar condiciones del filtro
+        if (anio_inicial <= anio_coleccion <= anio_final and 
+            "$" in unidad_medida):
+            
+            valor = registro["value"]
+            
+            # Contar registros inválidos (value = -1)
+            if valor == -1:
+                registros_invalidos += 1
+                continue
+            
+            # Agregar al filtro
+            filtro.append(registro)
+            
+            # Inicializar estructura para el año si no existe
+            if anio_coleccion not in ingresos_anio:
+                ingresos_anio[anio_coleccion] = {
+                    "total": 0,
+                    "cantidad": 0,
+                    "survey": 0,
+                    "census": 0
+                }
+            
+            # Acumular valores
+            ingresos_anio[anio_coleccion]["total"] += valor
+            ingresos_anio[anio_coleccion]["cantidad"] += 1
+            
+            # Contar por tipo de fuente
+            if registro["source"] == "SURVEY":
+                ingresos_anio[anio_coleccion]["survey"] += 1
+                total_survey += 1
+            elif registro["source"] == "CENSUS":
+                ingresos_anio[anio_coleccion]["census"] += 1
+                total_census += 1
+    
+    # Preparar lista de resultados
+    ingresos_totales = []
+    for anio, datos in ingresos_anio.items():
+        ingresos_totales.append((
+            anio,
+            datos["total"],
+            datos["cantidad"],
+            datos["survey"],
+            datos["census"]
+        ))
+    
+    # Ordenar según el parámetro
+    if ordenamiento == "ASCENDENTE":
+        ingresos_totales.sort(key=lambda x: (x[1], -x[2]))  # Orden por ingreso asc, cantidad desc
+    else:
+        ingresos_totales.sort(key=lambda x: (-x[1], -x[2])) # Orden por ingreso desc, cantidad desc
+    
+    # Determinar años con mayor y menor ingreso
     if ingresos_totales:
-        if ordenamiento == "ASCENDENTE":
-            anio_mayor = ingresos_totales[-1][0]
-            anio_menor = ingresos_totales[0][0]
-        else:
-            anio_mayor = ingresos_totales[0][0]
-            anio_menor = ingresos_totales[-1][0]
+        anio_mayor = ingresos_totales[0][0] if ordenamiento == "DESCENDENTE" else ingresos_totales[-1][0]
+        anio_menor = ingresos_totales[-1][0] if ordenamiento == "DESCENDENTE" else ingresos_totales[0][0]
     else:
         anio_mayor = None
         anio_menor = None
-        
+    
+    # Limitar a 15 elementos si es necesario
     if len(ingresos_totales) > 15:
-        ingresos_totales = ingresos_totales[:5] + ingresos_totales[-5:]  
+        primeros = ingresos_totales[:5]
+        ultimos = ingresos_totales[-5:]
+        ingresos_totales = primeros + [("...", "...", "...", "...", "...")] + ultimos
     
     end_time = get_time()
-    execution_time = delta_time(start_time, end_time) 
+    execution_time = delta_time(start_time, end_time)
     
+    # Preparar reporte
     report = {
         "execution_time": execution_time,
         "total_records": len(filtro),
@@ -452,6 +516,7 @@ def req_7(catalog, departamento, anio_inicial, anio_final, ordenamiento):
         "anio_mayor": anio_mayor,
         "anio_menor": anio_menor
     }
+    
     return report
 
 
