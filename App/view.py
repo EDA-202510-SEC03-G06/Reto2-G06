@@ -32,7 +32,7 @@ def load_data(control):
     """
     Carga los datos
     """
-    ruta = "Data/agricultural-100.csv"  
+    ruta = "Data/agricultural-80.csv"  
     contador = 0
     
     with open(ruta, encoding='utf-8') as archivo:
@@ -236,34 +236,35 @@ def print_req_6(control):
         Función que imprime la solución del Requerimiento 6 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 6
+    
     departamento = input("Ingrese el nombre del departamento: ").strip()
-    anio_inicial = int(input("Ingrese el año inicial (YYYY): "))
-    anio_final = int(input("Ingrese el año final (YYYY): "))
-    
-    report = logic.req_6(control, departamento, anio_inicial, anio_final)
-    
+    fecha_inicial = input("Ingrese la fecha inicial (YYYY-MM-DD): ").strip()
+    fecha_final = input("Ingrese la fecha final (YYYY-MM-DD): ").strip()
+
+    report = logic.req_6(control, departamento, fecha_inicial, fecha_final)
+
     if report:
-        print("\n" + "-"*50)
-        print(f"RESULTADOS PARA {departamento} ({anio_inicial}-{anio_final})".center(50))
-        print("-"*50)
+        print("\n" + "-" * 50)
+        print(f"RESULTADOS PARA {departamento} ({fecha_inicial} - {fecha_final})".center(50))
+        print("-" * 50)
         print(f"Tiempo de ejecución: {report['execution_time']:.2f} ms")
         print(f"Total registros encontrados: {report['total_records']}")
         print(f"Registros SURVEY: {report['survey_count']}")
         print(f"Registros CENSUS: {report['census_count']}")
-        
+
         print("\nREGISTROS DESTACADOS:")
         for i, record in enumerate(report["filtered_data"], 1):
             print(f"\nRegistro #{i}:")
-            print(f"  • Fuente: {record.get('source_type', 'N/A')}")
-            print(f"  • Año recolección: {record.get('collection_year', 'N/A')}")
-            print(f"  • Fecha carga: {record.get('load_date', 'N/A')}")
-            print(f"  • Frecuencia: {record.get('frequency', 'N/A')}")
-            print(f"  • Departamento: {record.get('department', 'N/A')}")
-            print(f"  • Unidad: {record.get('unit', 'N/A')}")
-            print(f"  • Producto: {record.get('product_type', 'N/A')}")
+            print(f"  • Fuente: {record['source_type']}")
+            print(f"  • Año recolección: {record['collection_year']}")
+            print(f"  • Fecha carga: {record['load_date']}")
+            print(f"  • Frecuencia: {record['frequency']}")
+            print(f"  • Departamento: {record['department']}")
+            print(f"  • Unidad: {record['unit']}")
+            print(f"  • Producto: {record['product_type']}")
     else:
         print("\nNO se encontraron registros para los criterios ingresados.")
-    print("\n" + "="*50 + "\n")
+    print("\n" + "=" * 50 + "\n")
     
 def print_req_7(control):
     """
