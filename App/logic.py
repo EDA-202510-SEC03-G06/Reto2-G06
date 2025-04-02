@@ -355,14 +355,15 @@ def req_6(catalog, departamento, anio_inicial, anio_final):
     # TODO: Modificar el requerimiento 6
     start_time = get_time()
     filtro = []
+    
     for registro in catalog["map_by_departments"].get(departamento, []):
         anio_coleccion = int(registro["year_collection"]) 
         if registro["state_name"] == departamento and anio_inicial <= anio_coleccion <= anio_final:
             filtro.append(registro)
     lp.shell_sort(filtro)
     total_registros = len(filtro)
-    total_survey = sum(1 for registro in filtro if registro["source_type"] == "SURVEY")
-    total_census = sum(1 for registro in filtro if registro["source_type"] == "CENSUS")
+    total_survey = sum(1 for registro in filtro if registro["source"] == "SURVEY")
+    total_census = sum(1 for registro in filtro if registro["source"] == "CENSUS")
     if total_registros > 20:
         datos_filtrados = filtro[:5] + filtro[-5:] 
     else:
